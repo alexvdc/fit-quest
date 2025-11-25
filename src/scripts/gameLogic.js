@@ -252,11 +252,25 @@ export class GameSession {
     spawnBoss() {
         const bossEl = document.getElementById('bossName');
         if(!bossEl) return;
-        const bossIndex = (this.state.level - 1) % BOSSES_DATA.length;
-        const boss = BOSSES_DATA[bossIndex];
-        this.maxBossHp = Math.floor((300 + (this.state.level * 50)) * boss.hpMultiplier);
+        
+        // SÉCURITÉ 1 : On force le niveau à 1 s'il est invalide (0, null, undefined)
+        let lvl = this.state.level;
+        if (!lvl || lvl < 1) lvl = 1; 
+
+        // SÉCURITÉ 2 : Fallback si l'index dépasse le tableau
+        const bossIndex = (lvl - 1) % BOSSES_DATA.length;
+        const boss = BOSSES_DATA[bossIndex] || BOSSES_DATA[0]; 
+
+        // SÉCURITÉ 3 : Si malgré tout boss est vide (impossible normalement), on return
+        if (!boss) {
+            console.error("Erreur critique: Données boss introuvables");
+            return;
+        }
+
+        this.maxBossHp = Math.floor((300 + (lvl * 50)) * boss.hpMultiplier);
         this.bossHp = this.maxBossHp;
         bossEl.innerText = boss.name;
+        
         const img = document.getElementById('bossImage');
         // if(img) img.src = `https://images.unsplash.com/photo-1620570623421-26c94843d920?w=500&q=80`;
         if(img) img.src = `${boss.artQuery || 'dark'}`;
