@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;600&display=swap');
+
+:root {
+    --bg-dark: #09090b;
+    --text: #ffffff;
+    --text-muted: #a1a1aa;
+    
+    --accent: #8b5cf6;       
+    --damage: #f43f5e;       
+    --gold: #fbbf24;         
+    --success: #10b981;      
+    
+    --card-width: 190px;
+    --card-height: 270px;
+    --card-radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+body { 
+    background-color: var(--bg-dark);
+    color: var(--text); 
+    font-family: 'Inter', sans-serif; 
+    height: 100vh; width: 100vw;
+    overflow: hidden;
+}
+
+body::before {
+    content: ''; position: absolute; inset: -50%;
+    background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08), transparent 60%);
+    z-index: -2; pointer-events: none;
+}
+body::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    z-index: -1; pointer-events: none;
+}
+
+button, a { cursor: pointer; text-decoration: none; color: inherit; }
+
+.btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05); color: var(--text-muted);
+    padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+    font-family: 'Rajdhani'; font-weight: 700; text-transform: uppercase;
+    transition: 0.2s; font-size: 0.9rem;
+}
+.btn-back:hover { background: rgba(255,255,255,0.1); color: white; border-color: white; }
+
+/* --- CARD CORE SYSTEM --- */
+.card {
+    width: var(--card-width); height: var(--card-height);
+    position: relative; border-radius: var(--card-radius);
+    background: #18181b; 
+    transition: transform 0.1s ease-out, box-shadow 0.3s;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    cursor: pointer; z-index: 1; 
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    /* Variables dynamiques définies par le JS */
+    --mx: 50%; 
+    --my: 50%;
+    --rx: 0deg;
+    --ry: 0deg;
+}
+
+.card:hover { 
+    z-index: 10; 
+    box-shadow: 0 20px 50px -10px rgba(0,0,0,0.7), 0 0 20px -5px var(--card-color); 
+}
+
+.card-inner {
+    position: absolute; inset: 0; border-radius: var(--card-radius); overflow: hidden;
+    display: flex; flex-direction: column;
+    /* Transformation 3D */
+    transform-style: preserve-3d;
+}
+
+.card-visual {
+    height: 55%; width: 100%; position: relative; overflow: hidden;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.bg-icon {
+    width: 120px; height: 120px;
+    opacity: 0.15;
+    transform: rotate(-15deg);
+    transition: transform 0.3s;
+}
+.card:hover .bg-icon { transform: rotate(0deg) scale(1.1); opacity: 0.3; }
+
+.card-content {
+    padding: 12px; flex: 1; position: relative;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: #18181b;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    z-index: 2;
+}
+
+.card-title { 
+    font-family: 'Rajdhani'; font-weight: 800; font-size: 1.1rem; 
+    text-transform: uppercase; line-height: 1; margin-bottom: 4px; color: white;
+}
+.card-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #a1a1aa; display: flex; align-items: center; gap: 5px; }
+.card-desc { font-size: 0.65rem; color: #71717a; line-height: 1.2; margin-top: 4px; }
+
+.card-cost {
+    position: absolute; top: 8px; left: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,0.8); border: 2px solid var(--card-color);
+    color: white; display: flex; justify-content: center; align-items: center;
+    font-family: 'Rajdhani'; font-weight: 700; z-index: 5; font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* --- HOLOGRAPHIC ENGINE (POKEMON STYLE) --- */
+
+/* Couche de brillance globale (Glare) - Suit la souris */
+.card-shine {
+    position: absolute; inset: 0; pointer-events: none; z-index: 10;
+    border-radius: var(--card-radius);
+    background: radial-gradient(
+        farthest-corner at var(--mx) var(--my), 
+        rgba(255,255,255,0.8) 0%, 
+        rgba(255,255,255,0.2) 20%, 
+        transparent 90%
+    );
+    opacity: 0; mix-blend-mode: overlay; transition: opacity 0.2s;
+}
+.card:hover .card-shine { opacity: 0.6; }
+
+/* --- RARETÉ : RARE (Effet Foil Métallique) --- */
+.card.rare { border-color: #3b82f6; }
+.card.rare .card-inner::before {
+    content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background: linear-gradient(115deg, transparent 20%, rgba(59, 130, 246, 0.3) 40%, rgba(255, 255, 255, 0.1) 50%, transparent 80%);
+    background-size: 200% 200%;
+    background-position: var(--mx) var(--my);
+    opacity: 0; mix-blend-mode: color-dodge; transition: opacity 0.2s;
+}
+.card.rare:hover .card-inner::before { opacity: 0.7; }
+
+/* --- RARETÉ : ÉPIQUE (TEST AVEC IMAGE GALAXY) --- */
+.card.epic { border-color: #a855f7; }
+.card.epic .card-inner::before {
+    content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    
+    /* Utilisation de l'image locale pour la texture holographique */
+    background-image: url('/galaxy.jpg');
+    /* background-image: url('/wave.png'); */
+    background-size: 120% 120%; /* Zoom pour permettre le mouvement */
+    background-position: calc(var(--mx) / 4) calc(var(--my) / 4); /* Suit la souris */
+    
+    /* Mix-blend-mode overlay ou color-dodge pour l'effet "brillant" sur le fond noir */
+    mix-blend-mode: color-dodge;
+    filter: brightness(0.88) contrast(1.2) saturate(1.2);
+    
+    opacity: 0.6; transition: opacity 0.2s;
+}
+.card.epic:hover .card-inner::before { opacity: 0.6; }
+
+/* --- RARETÉ : LÉGENDAIRE (Cosmic Foil & Paillettes) --- */
+.card.legendary { border-color: #fbbf24; animation: pulseGold 3s infinite; }
+.card.legendary .card-inner {
+    background-image: 
+        radial-gradient(circle at var(--mx) var(--my), rgba(255, 215, 0, 0.2), transparent 40%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.2'/%3E%3C/svg%3E");
+}
+.card.legendary .card-inner::after {
+    content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background: linear-gradient(
+        to bottom, 
+        transparent, 
+        rgba(251, 191, 36, 0.2) 20%, 
+        rgba(244, 63, 94, 0.2) 40%, 
+        rgba(139, 92, 246, 0.2) 60%, 
+        transparent
+    );
+    background-size: 100% 300%;
+    background-position: 0% var(--my);
+    opacity: 0; mix-blend-mode: overlay; transition: opacity 0.2s;
+}
+.card.legendary:hover .card-inner::after { opacity: 1; }
+
+@keyframes pulseGold { 0% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); } 50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); } 100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); } }
+
+/* Helpers */
+.hidden { display: none !important; }

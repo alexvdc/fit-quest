@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Grimoire">
+    <div class="collection-page">
+        <header class="header">
+            <a href="/" class="btn-back">
+                <!-- ← replace with arrow icon -->
+                <i data-lucide="arrow-left"></i>
+                Retour
+            </a>
+            <div class="gold-box">
+                <span style="font-size:0.8rem; color:#aaa; margin-right:5px;">RÉSERVE</span>
+                💰 <span id="collectionGold">...</span>
+            </div>
+        </header>
+
+        <div class="scroll-container">
+            <div id="grid" class="grid">
+                <!-- Cartes injectées par JS -->
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { GameSession } from '../scripts/gameLogic.js';
+    import { CARDS_DATABASE } from '../data/fitquest.js';
+    import { getSave } from '../scripts/store.js';
+
+    // On utilise astro:page-load pour supporter la navigation fluide
+    document.addEventListener('astro:page-load', () => {
+        const grid = document.getElementById('grid');
+        
+        // SÉCURITÉ : Si on n'est pas sur la page collection (grid inexistant), on arrête le script.
+        // Cela évite l'erreur "innerText of null" si le script se lance sur une autre page.
+        if (!grid) return;
+
+        const goldEl = document.getElementById('collectionGold');
+        const save = getSave();
+        
+        // Mise à jour de l'or
+        if(goldEl) goldEl.innerText = save.gold;
+        
+        // Instanciation de la session (Attention : ne pas appeler .init() ici, juste le constructeur)
+        // L'erreur "init is not a function" venait peut-être d'un appel incorrect ailleurs.
+        const game = new GameSession(); 
+
+        // Nettoyage et Rendu
+        grid.innerHTML = ''; 
+        CARDS_DATABASE.forEach(card => {
+            const el = game.createCardDOM(card);
+            
+            // Ajustements pour la vue Collection
+            el.style.pointerEvents = 'auto'; 
+            el.onclick = null; 
+            
+            // GESTION ERREUR IMAGE (Pollinations 502)
+            // Si l'image IA plante, on remplace par une image Unsplash générique
+            const img = el.querySelector('img');
+            if (img) {
+                img.onerror = () => {
+                    // Fallback vers une image abstraite dark
+                    img.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop';
+                    img.onerror = null; // Empêcher boucle infinie
+                };
+            }
+
+            grid.appendChild(el);
+        });
+        
+        // Recharger les icônes Lucide si nécessaire
+        if(window['lucide']) window['lucide'].createIcons();
+    });
+</script>
+
+<style>
+    .collection-page {
+        height: 100vh; display: flex; flex-direction: column; 
+        background: radial-gradient(circle at center, #1a1a2e, #000);
+    }
+    
+    .header { 
+        padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; 
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        z-index: 50;
+    }
+    
+    .gold-box { 
+        font-family: 'Rajdhani'; font-weight: 800; color: var(--gold); font-size: 1.4rem; 
+        display: flex; align-items: center;
+        background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    
+    .scroll-container {
+        flex: 1; overflow-y: auto; padding: 20px;
+    }
+
+    .grid { 
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; 
+        padding-bottom: 50px; max-width: 1200px; margin: 0 auto;
+    }
+    
+    /* Scrollbar invisible mais fonctionnelle */
+    .scroll-container::-webkit-scrollbar { width: 8px; }
+    .scroll-container::-webkit-scrollbar-track { background: transparent; }
+    .scroll-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+</style>

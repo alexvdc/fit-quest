@@ -1,16 +1,63 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Menu">
+    <main class="menu-container">
+        <div class="content">
+            <h1 class="title">FITQUEST <span class="subtitle">ASCENSION</span></h1>
+            
+            <div class="status-box">
+                <span class="label">RÉSERVE D'OR</span>
+                <span id="menuGold" class="value">...</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="/game" class="btn-menu primary">LANCER LE COMBAT</a>
+                <a href="/collection" class="btn-menu secondary">GRIMOIRE (UPGRADE)</a>
+                <a href="/profile" class="btn-menu tertiary">PROFIL & DECK</a>
+            </nav>
+        </div>
+    </main>
+</Layout>
+
+<script>
+    import { getSave } from '../scripts/store.js';
+
+    document.addEventListener('astro:page-load', () => {
+        const goldEl = document.getElementById('menuGold');
+        if (!goldEl) return;
+        goldEl.innerText = getSave().gold;
+    });
+</script>
+
+<style>
+    /* ... Garde le style précédent ... */
+    .menu-container {
+        height: 100vh; display: flex; justify-content: center; align-items: center;
+        text-align: center;
+        background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 70%);
+    }
+    .title {
+        font-family: 'Rajdhani'; font-size: 4rem; font-weight: 900; line-height: 0.9;
+        margin-bottom: 3rem; letter-spacing: 4px; color: white;
+    }
+    .subtitle { display: block; font-size: 1.5rem; color: var(--accent); letter-spacing: 10px; }
+    
+    .btn-menu {
+        display: block; width: 280px; padding: 20px; margin: 15px auto;
+        font-family: 'Rajdhani'; font-weight: 800; font-size: 1.2rem;
+        text-decoration: none; text-transform: uppercase; letter-spacing: 2px;
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .primary { background: white; color: black; }
+    .secondary { border: 1px solid rgba(255,255,255,0.2); color: white; }
+    /* Nouveau style pour bouton profil */
+    .tertiary { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
+    
+    .btn-menu:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
+    
+    .status-box { margin-bottom: 2rem; font-family: 'Rajdhani'; }
+    .status-box .value { font-size: 1.5rem; color: var(--gold); font-weight: bold; display: block;}
+</style>

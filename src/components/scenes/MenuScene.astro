@@ -1,0 +1,21 @@
+<div id="scene-menu" class="scene active">
+    <div style="position: relative; z-index: 2; text-align: center;">
+        <h1 class="game-title">FITQUEST<br><span style="font-size:2rem; letter-spacing:10px; color:var(--accent-glow)">ASCENSION</span></h1>
+        
+        <div style="margin-bottom:40px; color:var(--gold); font-family:'Rajdhani'; font-size:1.8rem; font-weight:bold; text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);">
+            <span style="font-size:1rem; color:#888; display:block; margin-bottom:5px;">RÉSERVE D'OR</span>
+            💰 <span id="menuGold">0</span>
+        </div>
+
+        <button class="menu-btn" onclick="window.game.switchScene('game')">
+            LANCER LE COMBAT
+        </button>
+        <button class="menu-btn" onclick="window.game.switchScene('collection')" style="border-color: var(--success); color: var(--success);">
+            GRIMOIRE
+        </button>
+        
+        <div class="day-theme" id="menuDayTheme" style="margin-top: 30px; font-family: 'Rajdhani'; color: #666; letter-spacing: 2px;">
+            CHARGEMENT DU PROTOCOLE...
+        </div>
+    </div>
+</div>

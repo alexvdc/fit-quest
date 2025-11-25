@@ -1,0 +1,45 @@
+<div id="scene-game" class="scene">
+    <div id="game-ui">
+        <div class="hud">
+            <button class="btn-back" onclick="window.game.switchScene('menu')">ABANDON</button>
+            <div style="text-align:center;">
+                <div class="level-badge" id="levelDisplay">JOUR 1</div>
+            </div>
+            <div class="wallet">💰 <span id="gameGold">0</span></div>
+        </div>
+
+        <div class="arena" id="arena">
+            <div style="position: relative;">
+                <div class="boss-container" id="bossContainer">
+                    <img id="bossImage" class="boss-image" src="" alt="Boss" />
+                    <div id="bossLoader" style="position:absolute; color:white; font-family:'Rajdhani'; z-index:10; font-weight:bold; letter-spacing:2px; text-shadow:0 0 10px black;">
+                        INVOCATION...
+                    </div>
+                </div>
+            </div>
+
+            <div class="boss-health">
+                <div class="boss-name" id="bossName">...</div>
+                <div class="hp-bar">
+                    <div class="hp-fill" id="hpFill"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; color:#aaa; font-family:'Rajdhani'; font-weight:bold;">
+                    <span>HP</span>
+                    <span><span id="currentHp">0</span> / <span id="maxHp">0</span></span>
+                </div>
+                <div class="boss-desc" id="bossDesc" style="margin-top:10px; font-style:italic; color:#666; font-size:0.9rem;">...</div>
+            </div>
+        </div>
+
+        <div class="ult-container" id="ultContainer" onclick="window.game.playUltimate()">
+            <div class="ult-ring">
+                <div class="ult-fill" id="ultFill"></div>
+                <div class="ult-icon">⚡</div>
+            </div>
+            <div style="text-align:center; margin-top:5px; font-family:'Rajdhani'; font-weight:bold; font-size:0.8rem; color:#666;">ULTIME</div>
+        </div>
+
+        <div class="hand-area" id="handArea">
+            </div>
+    </div>
+</div>

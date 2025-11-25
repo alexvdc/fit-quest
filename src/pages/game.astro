@@ -1,0 +1,149 @@
+---
+import Modals from '../components/ui/Modals.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Combat">
+    <div class="game-layout">
+        <!-- HUD -->
+        <header class="hud">
+            <a href="/" class="btn-back">Abandon</a>
+            
+            <!-- BARRE SEMAINE -->
+            <div class="week-bar">
+                <div class="day" data-d="1">L</div>
+                <div class="day" data-d="2">M</div>
+                <div class="day" data-d="3">M</div>
+                <div class="day" data-d="4">J</div>
+                <div class="day" data-d="5">V</div>
+                <div class="day" data-d="6">S</div>
+                <div class="day" data-d="0">D</div>
+            </div>
+
+            <div class="gold-display">💰 <span id="gameGold">0</span></div>
+        </header>
+
+        <!-- ARÈNE (ID Important pour le JS) -->
+        <main class="arena" id="arena">
+            <div class="boss-wrapper" id="bossContainer">
+                <img id="bossImage" class="boss-img" src="" />
+            </div>
+            
+            <div class="boss-stats">
+                <h2 id="bossName" class="boss-name">...</h2>
+                <div class="hp-bar-bg"><div id="hpFill" class="hp-bar-fill"></div></div>
+                <div id="bossHpText" class="hp-text">...</div>
+            </div>
+        </main>
+
+        <!-- MAIN -->
+        <footer id="handArea" class="hand-area">
+            <!-- Cartes injectées par JS -->
+        </footer>
+    </div>
+    
+    <!-- Modales -->
+    <slot name="modals" /> 
+    <Modals />
+    
+    <!-- Si Modals n'est pas dans le Layout, on peut l'ajouter via un slot ou composant ici. 
+         Pour l'instant on suppose qu'il est géré par le Layout ou via le slot ci-dessus -->
+</Layout>
+
+<!-- Import des modales si elles ne sont pas dans le Layout global -->
+<script>
+    import '../components/ui/Modals.astro'; 
+</script>
+<!-- Note: Si Modals est un composant Astro, il doit être utilisé dans le template, pas le script -->
+<!-- Correction par rapport à ton setup : je présume que tu l'as déjà intégré ou via Layout -->
+<!-- Ajoutons le conteneur Modals ici pour être sûr si ce n'est pas fait -->
+<div id="modals-container">
+    <!-- Le composant Modals.astro devrait être rendu ici -->
+</div>
+
+<script>
+    import { GameSession } from '../scripts/gameLogic.js';
+    
+    document.addEventListener('astro:page-load', () => {
+        // SÉCURITÉ : On vérifie que l'arène existe
+        if (!document.getElementById('arena')) return;
+
+        const session = new GameSession();
+        session.init();
+    });
+</script>
+
+<style>
+    .game-layout { height: 100vh; display: grid; grid-template-rows: 70px 1fr 300px; max-width: 800px; margin: 0 auto; overflow: hidden; }
+    
+    .hud { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 20; }
+    .gold-display { font-family: 'Rajdhani'; font-weight: 800; color: var(--gold); font-size: 1.2rem; }
+    
+    /* STYLE BARRE SEMAINE */
+    .week-bar {
+        display: flex; gap: 5px;
+        background: rgba(0,0,0,0.4);
+        padding: 8px 15px; border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(5px);
+    }
+    .day {
+        font-family: 'Rajdhani'; font-weight: 700; color: #555;
+        width: 20px; text-align: center; font-size: 0.9rem;
+        transition: 0.3s;
+    }
+    .day.active {
+        color: var(--accent);
+        text-shadow: 0 0 10px var(--accent);
+        transform: scale(1.3);
+    }
+    
+    .arena { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    
+    .boss-wrapper { 
+        width: 200px; height: 200px; border-radius: 50%; overflow: hidden;
+        border: 4px solid rgba(255,255,255,0.1); 
+        box-shadow: 0 0 50px rgba(0,0,0,0.5); margin-bottom: 20px; transition: transform 0.1s;
+    }
+    .boss-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .boss-name { font-family: 'Rajdhani'; font-weight: 800; font-size: 2rem; text-transform: uppercase; margin-bottom: 10px;}
+    .hp-bar-bg { width: 250px; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
+    .hp-bar-fill { width: 100%; height: 100%; background: var(--damage); transition: width 0.3s; }
+    .hp-text { margin-top: 5px; font-size: 0.8rem; color: var(--text-muted); font-family: 'Rajdhani'; }
+    
+    .hand-area { display: flex; justify-content: center; align-items: flex-end; gap: 15px; padding-bottom: 30px; }
+
+    /* --- RESPONSIVE MOBILE --- */
+    @media (max-width: 640px) {
+        .game-layout {
+            /* On réduit la place réservée à la main en bas (220px au lieu de 300px) */
+            grid-template-rows: 60px 1fr 220px;
+        }
+
+        /* HUD Compact */
+        .hud { padding: 0 10px; }
+        .btn-back { font-size: 0.7rem; padding: 6px 10px; }
+        .gold-display { font-size: 1rem; }
+        
+        .week-bar { padding: 5px 10px; gap: 2px; }
+        .day { width: 15px; font-size: 0.8rem; }
+
+        /* Boss plus petit pour laisser de la place */
+        .boss-wrapper { width: 150px; height: 150px; margin-bottom: 10px; }
+        .boss-name { font-size: 1.5rem; margin-bottom: 5px; }
+        .hp-bar-bg { width: 200px; height: 8px; }
+
+        /* OVERRIDE DE LA TAILLE DES CARTES */
+        .hand-area {
+            /* On redéfinit les variables globales juste pour cette zone */
+            --card-width: 110px;
+            --card-height: 160px;
+            --card-radius: 10px; /* Coins moins arrondis */
+            
+            gap: 8px;
+            padding-bottom: 80px; /* Espace pour le pouce en bas */
+            align-items: center;
+        }
+    }
+</style>
