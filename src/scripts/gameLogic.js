@@ -171,7 +171,9 @@ export class GameSession {
 
     // ... (openTraining, startTimer, formatTime, closeModal identiques) ...
     openTraining(card, dmg, cost) {
-        this.activeCard = { ...card, finalDmg: dmg };
+        // MODIFICATION : On stocke 'cost' (valeur reps/temps) dans activeCard pour l'historique
+        this.activeCard = { ...card, finalDmg: dmg, finalCost: cost };
+        
         const modal = document.getElementById('trainingModal');
         if(!modal) return;
         const title = document.getElementById('modalTitle');
@@ -180,9 +182,11 @@ export class GameSession {
         const timerBox = document.getElementById('timerContainer');
         const timerDisplay = document.getElementById('modalTimer');
         const btn = document.getElementById('btnComplete');
+        
         if(title) title.innerText = card.name;
         if(tuto) tuto.innerText = card.tutorial;
         if(instruc) instruc.innerText = `${cost} ${card.unit}`;
+
         if (card.duration) {
             if(timerBox) timerBox.classList.remove('hidden');
             if(btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.innerText = "PRÉPAREZ-VOUS..."; }
@@ -192,6 +196,49 @@ export class GameSession {
             if(btn) { btn.disabled = false; btn.style.opacity = '1'; btn.innerText = "J'AI FINI MES REPS"; }
         }
         modal.classList.add('active');
+    }
+
+    completeTraining() {
+        if(!this.activeCard) return;
+        
+        // 1. Gameplay
+        this.bossHp -= this.activeCard.finalDmg;
+        this.state.gold += 20; 
+        this.state.playerXp = (this.state.playerXp || 0) + 50;
+
+        // 2. Historique (NOUVEAU)
+        if (!this.state.history) this.state.history = [];
+        this.state.history.unshift({
+            date: Date.now(), // Timestamp pour trier
+            name: this.activeCard.name,
+            value: this.activeCard.finalCost,
+            unit: this.activeCard.unit,
+            xp: 50
+        });
+        
+        // Limiter l'historique aux 50 dernières actions pour économiser le stockage
+        if (this.state.history.length > 50) this.state.history.pop();
+
+        // 3. Anim Boss
+        const bossContainer = document.getElementById('bossContainer');
+        if(bossContainer) {
+            bossContainer.style.transform = "scale(0.9) rotate(5deg)";
+            setTimeout(() => bossContainer.style.transform = "scale(1)", 300);
+        }
+
+        // 4. Sauvegarde
+        saveGame(this.state);
+
+        if(this.bossHp <= 0) {
+            this.state.level++;
+            saveGame(this.state);
+            alert("BOSS VAINCU ! NIVEAU SUIVANT !");
+            window.location.reload();
+        } else {
+            this.updateUI();
+            this.dealHand();
+        }
+        this.closeModal();
     }
 
     startTimer(seconds, display, btn) {
@@ -216,37 +263,6 @@ export class GameSession {
         if(modal) modal.classList.remove('active');
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.activeCard = null;
-    }
-
-    completeTraining() {
-        if(!this.activeCard) return;
-        
-        this.bossHp -= this.activeCard.finalDmg;
-        this.state.gold += 20; 
-        this.state.playerXp = (this.state.playerXp || 0) + 50;
-
-        const bossContainer = document.getElementById('bossContainer');
-        if(bossContainer) {
-            bossContainer.style.transform = "scale(0.9) rotate(5deg)";
-            bossContainer.style.filter = "sepia(1) hue-rotate(-50deg) saturate(5)"; 
-            setTimeout(() => {
-                bossContainer.style.transform = "scale(1)";
-                bossContainer.style.filter = "none";
-            }, 300);
-        }
-
-        saveGame(this.state);
-
-        if(this.bossHp <= 0) {
-            this.state.level++;
-            saveGame(this.state);
-            alert("BOSS VAINCU ! NIVEAU SUIVANT !");
-            window.location.reload();
-        } else {
-            this.updateUI();
-            this.dealHand();
-        }
-        this.closeModal();
     }
 
     spawnBoss() {

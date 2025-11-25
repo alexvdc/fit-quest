@@ -10,10 +10,11 @@ const defaultState = {
     activeDeck: ['squats', 'jacks', 'plank', 'knee_pushups'],
     cardLevels: {},
     cardRarity: {},
+    lastLoginDate: null,
+    currentStreak: 0,
     
-    // NOUVEAU : Gestion des séries
-    lastLoginDate: null, // String 'YYYY-MM-DD'
-    currentStreak: 0
+    // NOUVEAU : Historique des entraînements
+    history: [] 
 };
 
 export function getSave() {
@@ -22,13 +23,10 @@ export function getSave() {
         const saved = localStorage.getItem(KEY);
         let state = saved ? JSON.parse(saved) : defaultState;
         
-        // Fusionner avec le défaut pour éviter les bugs de migration
+        // Fusionner avec le défaut pour s'assurer que 'history' existe
         state = { ...defaultState, ...state };
         
-        // Vérification des Unlocks...
         checkUnlocks(state);
-        
-        // NOUVEAU : Vérification de la Série (Streak) au chargement
         checkStreak(state);
 
         return state;
@@ -37,10 +35,30 @@ export function getSave() {
     }
 }
 
-function checkStreak(state) {
-    const today = new Date().toISOString().split('T')[0]; // '2023-10-27'
+// NOUVEAU : Calcul des statistiques globales
+export function getGlobalStats(state) {
+    const history = state.history || [];
+    let totalReps = 0;
+    let totalSeconds = 0;
     
-    // Si c'est la première fois qu'on joue
+    history.forEach(entry => {
+        if (entry.unit === 'Sec') {
+            totalSeconds += entry.value;
+        } else {
+            totalReps += entry.value;
+        }
+    });
+
+    return {
+        totalSessions: history.length,
+        totalReps: totalReps,
+        totalMinutes: Math.floor(totalSeconds / 60)
+    };
+}
+
+function checkStreak(state) {
+    const today = new Date().toISOString().split('T')[0];
+    
     if (!state.lastLoginDate) {
         state.lastLoginDate = today;
         state.currentStreak = 1;
@@ -48,26 +66,19 @@ function checkStreak(state) {
         return;
     }
 
-    // Si on a déjà joué aujourd'hui, on ne fait rien
-    if (state.lastLoginDate === today) {
-        return;
-    }
+    if (state.lastLoginDate === today) return;
 
-    // Calcul de la différence en jours
     const last = new Date(state.lastLoginDate);
     const now = new Date(today);
     const diffTime = Math.abs(now - last);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {
-        // C'était hier : on incrémente !
         state.currentStreak++;
         state.lastLoginDate = today;
-        // Petit bonus d'or pour la fidélité ?
         state.gold += 10; 
     } else {
-        // On a raté un jour ou plus : Reset :(
-        state.currentStreak = 1; // On recommence à 1 car on joue aujourd'hui
+        state.currentStreak = 1;
         state.lastLoginDate = today;
     }
     
@@ -75,18 +86,15 @@ function checkStreak(state) {
 }
 
 export function saveGame(newState) {
-    const current = getSave(); // Attention à ne pas créer de boucle infinie, getSave appelle checkStreak
-    // Pour éviter la récursion, on lit le localStorage brut ici si besoin, 
-    // mais dans notre cas simple, on peut juste écraser.
+    const current = getSave();
+    // On préserve l'historique existant si newState ne le fournit pas explicitement
+    const history = newState.history || current.history || [];
     
-    // S'assurer qu'on ne perd pas les données de streak si newState ne les contient pas
-    const finalState = { ...current, ...newState };
+    const finalState = { ...current, ...newState, history };
     
-    // Check Level Up
     const nextLevelXp = LEVEL_CURVE[finalState.playerLevel] || 99999;
     if (finalState.playerXp >= nextLevelXp) {
         finalState.playerLevel++;
-        // alert déplacé dans l'UI idéalement, mais ok pour prototype
         checkUnlocks(finalState);
     }
 
@@ -94,26 +102,20 @@ export function saveGame(newState) {
     return finalState;
 }
 
-// Fonction pour débloquer les cartes selon le niveau du joueur
 function checkUnlocks(state) {
     let hasNewUnlock = false;
     CARDS_DATABASE.forEach(card => {
-        // Si la carte n'est pas encore débloquée ET qu'on a le niveau requis
         if (!state.unlockedCards.includes(card.id) && state.playerLevel >= card.unlockLevel) {
             state.unlockedCards.push(card.id);
-            state.activeDeck.push(card.id); // On l'ajoute au deck par défaut
+            state.activeDeck.push(card.id);
             hasNewUnlock = true;
-            // Idéalement on ferait une notification visuelle ici
-            console.log(`Nouvelle carte débloquée : ${card.name}`);
         }
     });
-    
     if (hasNewUnlock && typeof localStorage !== 'undefined') {
         localStorage.setItem(KEY, JSON.stringify(state));
     }
 }
 
-// Helper pour gagner de l'XP
 export function gainXp(amount) {
     const state = getSave();
     state.playerXp += amount;
