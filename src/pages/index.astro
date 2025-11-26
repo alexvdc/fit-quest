@@ -1,19 +1,24 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="Menu">
     <main class="menu-container">
         <div class="content">
-            <h1 class="title">FITQUEST <span class="subtitle">ASCENSION</span></h1>
-            
+            <h1 class="title">
+                FITQUEST <span class="subtitle">ASCENSION</span>
+            </h1>
+
             <div class="status-row">
                 <div class="status-pill gold">
-                    <span>💰</span> <span id="menuGold">...</span>
+                    <span>💰</span>
+                    <span id="menuGold">...</span>
                 </div>
                 <div class="status-pill streak">
-                    <span class="fire-icon">🔥</span> 
-                    <span id="menuStreak">...</span> <span style="font-size:0.8rem; margin-left:5px;">JOURS</span>
+                    <span class="fire-icon">🔥</span>
+                    <span id="menuStreak">...</span>
+                    <span style="font-size:0.8rem; margin-left:5px;">JOURS</span
+                    >
                 </div>
             </div>
 
@@ -25,7 +30,9 @@ import Layout from '../layouts/Layout.astro';
 
             <nav class="nav-links">
                 <a href="/game" class="btn-menu primary">LANCER LE COMBAT</a>
-                <a href="/collection" class="btn-menu secondary">GRIMOIRE (UPGRADE)</a>
+                <a href="/collection" class="btn-menu secondary"
+                    >GRIMOIRE (UPGRADE)</a
+                >
                 <a href="/profile" class="btn-menu tertiary">PROFIL & DECK</a>
             </nav>
         </div>
@@ -46,13 +53,13 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-    import { getSave, saveGame } from '../scripts/store.js';
-    import { QUEST_DATABASE } from '../data/fitquest.js';
+    import { getSave, saveGame } from "../scripts/store.js";
+    import { QUEST_DATABASE } from "../data/fitquest.js";
 
-    document.addEventListener('astro:page-load', () => {
-        const goldEl = document.getElementById('menuGold');
-        const streakEl = document.getElementById('menuStreak');
-        
+    document.addEventListener("astro:page-load", () => {
+        const goldEl = document.getElementById("menuGold");
+        const streakEl = document.getElementById("menuStreak");
+
         if (goldEl && streakEl) {
             const save = getSave();
             goldEl.innerText = save.gold;
@@ -61,57 +68,57 @@ import Layout from '../layouts/Layout.astro';
         }
 
         // Gestion Modale Quêtes
-        const btnOpen = document.getElementById('btnOpenQuests');
-        const btnClose = document.getElementById('btnCloseQuests');
-        const modal = document.getElementById('questModal');
+        const btnOpen = document.getElementById("btnOpenQuests");
+        const btnClose = document.getElementById("btnCloseQuests");
+        const modal = document.getElementById("questModal");
 
         if (btnOpen && modal) {
             btnOpen.onclick = () => {
-                modal.classList.add('active');
+                modal.classList.add("active");
                 renderQuests();
             };
         }
         if (btnClose && modal) {
-            btnClose.onclick = () => modal.classList.remove('active');
+            btnClose.onclick = () => modal.classList.remove("active");
         }
-        
-        if(window['lucide']) window['lucide'].createIcons();
+
+        if (window["lucide"]) window["lucide"].createIcons();
     });
 
     function checkQuestNotif(state) {
-        const notif = document.getElementById('questNotif');
-        if(!notif) return;
-        
+        const notif = document.getElementById("questNotif");
+        if (!notif) return;
+
         // Vérifier si une quête est finie mais pas réclamée
-        const hasClaimable = state.dailyQuests?.quests?.some(q => {
-            const def = QUEST_DATABASE.find(d => d.id === q.id);
+        const hasClaimable = state.dailyQuests?.quests?.some((q) => {
+            const def = QUEST_DATABASE.find((d) => d.id === q.id);
             return def && q.progress >= def.target && !q.claimed;
         });
 
-        if(hasClaimable) notif.classList.remove('hidden');
-        else notif.classList.add('hidden');
+        if (hasClaimable) notif.classList.remove("hidden");
+        else notif.classList.add("hidden");
     }
 
     function renderQuests() {
-        const list = document.getElementById('questList');
-        if(!list) return;
-        
+        const list = document.getElementById("questList");
+        if (!list) return;
+
         const state = getSave();
         const userQuests = state.dailyQuests?.quests || [];
-        
-        list.innerHTML = '';
 
-        userQuests.forEach(q => {
-            const def = QUEST_DATABASE.find(d => d.id === q.id);
-            if(!def) return;
+        list.innerHTML = "";
+
+        userQuests.forEach((q) => {
+            const def = QUEST_DATABASE.find((d) => d.id === q.id);
+            if (!def) return;
 
             const isDone = q.progress >= def.target;
             const pct = Math.min(100, (q.progress / def.target) * 100);
 
-            const el = document.createElement('div');
-            el.className = `quest-item ${q.claimed ? 'claimed' : ''} ${isDone ? 'done' : ''}`;
-            
-            let actionBtn = '';
+            const el = document.createElement("div");
+            el.className = `quest-item ${q.claimed ? "claimed" : ""} ${isDone ? "done" : ""}`;
+
+            let actionBtn = "";
             if (q.claimed) {
                 actionBtn = `<div class="quest-status"><i data-lucide="check"></i> REÇU</div>`;
             } else if (isDone) {
@@ -131,132 +138,434 @@ import Layout from '../layouts/Layout.astro';
             `;
 
             // Logique Réclamer
-            const btn = el.querySelector('.btn-claim');
-            if(btn) {
-                btn.addEventListener('click', () => {
+            const btn = el.querySelector(".btn-claim");
+            if (btn) {
+                btn.addEventListener("click", () => {
                     q.claimed = true;
                     state.gold += def.reward;
                     saveGame(state);
-                    
+
                     // Feedback visuel
                     btn.innerHTML = "RÉCLAMÉ !";
                     btn.disabled = true;
                     setTimeout(() => renderQuests(), 500); // Refresh
-                    
+
                     // Update UI Menu
-                    document.getElementById('menuGold').innerText = state.gold;
+                    document.getElementById("menuGold").innerText = state.gold;
                     checkQuestNotif(state);
                 });
             }
 
             list.appendChild(el);
         });
-        
-        if(window['lucide']) window['lucide'].createIcons();
+
+        if (window["lucide"]) window["lucide"].createIcons();
     }
 </script>
 
 <style>
     /* ... Styles Menu existants ... */
-    .menu-container { height: 100vh; display: flex; justify-content: center; align-items: center; text-align: center; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 70%); }
-    .title { font-family: 'Rajdhani'; font-size: 3.5rem; font-weight: 900; line-height: 0.9; margin-bottom: 2rem; letter-spacing: 4px; color: white; }
-    .subtitle { display: block; font-size: 1.2rem; color: var(--accent); letter-spacing: 8px; margin-top: 5px; }
-    .status-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 2rem; }
-    .status-pill { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; font-family: 'Rajdhani'; font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px); }
-    .status-pill.gold { color: var(--gold); border-color: rgba(251, 191, 36, 0.3); }
-    .status-pill.streak { color: #f97316; border-color: rgba(249, 115, 22, 0.3); }
-    .fire-icon { display: inline-block; animation: burn 0.5s infinite alternate; }
-    @keyframes burn { from { transform: scale(1); filter: brightness(1); } to { transform: scale(1.2); filter: brightness(1.3); } }
-    .btn-menu { display: block; width: 280px; padding: 20px; margin: 15px auto; font-family: 'Rajdhani'; font-weight: 800; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: transform 0.2s, box-shadow 0.2s; }
-    .primary { background: white; color: black; }
-    .secondary { border: 1px solid rgba(255,255,255,0.2); color: white; }
-    .tertiary { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
-    .btn-menu:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
+    .menu-container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: radial-gradient(
+            circle at center,
+            rgba(139, 92, 246, 0.1),
+            transparent 70%
+        );
+    }
+    .title {
+        font-family: "Rajdhani";
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 0.9;
+        margin-bottom: 2rem;
+        letter-spacing: 4px;
+        color: white;
+    }
+    .subtitle {
+        display: block;
+        font-size: 1.2rem;
+        color: var(--accent);
+        letter-spacing: 8px;
+        margin-top: 5px;
+    }
+    .status-row {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 2rem;
+    }
+    .status-pill {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(5px);
+    }
+    .status-pill.gold {
+        color: var(--gold);
+        border-color: rgba(251, 191, 36, 0.3);
+    }
+    .status-pill.streak {
+        color: #f97316;
+        border-color: rgba(249, 115, 22, 0.3);
+    }
+    .fire-icon {
+        display: inline-block;
+        animation: burn 0.5s infinite alternate;
+    }
+    @keyframes burn {
+        from {
+            transform: scale(1);
+            filter: brightness(1);
+        }
+        to {
+            transform: scale(1.2);
+            filter: brightness(1.3);
+        }
+    }
+    .btn-menu {
+        display: block;
+        width: 280px;
+        padding: 20px;
+        margin: 15px auto;
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 1.2rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        clip-path: polygon(
+            10px 0,
+            100% 0,
+            100% calc(100% - 10px),
+            calc(100% - 10px) 100%,
+            0 100%,
+            0 10px
+        );
+        transition:
+            transform 0.2s,
+            box-shadow 0.2s;
+    }
+    .primary {
+        background: white;
+        color: black;
+    }
+    .secondary {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    .tertiary {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+    .btn-menu:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+    }
 
     /* STYLE QUETES */
     .btn-quests {
-        background: linear-gradient(90deg, #111, #222); border: 1px solid #444; color: #ddd;
-        padding: 12px 25px; border-radius: 30px; font-family: 'Rajdhani'; font-weight: 700; font-size: 1rem;
-        display: flex; align-items: center; gap: 10px; margin: 0 auto 30px; cursor: pointer; position: relative;
-        transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-family: "Rajdhani";
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 auto 30px;
+        cursor: pointer;
+        position: relative;
+        transition: 0.3s;
+        backdrop-filter: blur(10px);
     }
-    .btn-quests:hover { border-color: var(--gold); color: white; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); transform: translateY(-2px); }
-    .quest-badge { position: absolute; top: -5px; right: -5px; background: var(--damage); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; box-shadow: 0 0 10px var(--damage); animation: pulse 1s infinite; }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    .btn-quests:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--gold);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+    .quest-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--damage);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        box-shadow: 0 0 10px var(--damage);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+    }
 
     /* MODAL QUESTS - REDESIGN */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
-    .modal-overlay.active { opacity: 1; pointer-events: all; }
-    
-    .quest-card { 
-        background: linear-gradient(135deg, #131316, #000); 
-        border: 1px solid var(--gold); 
-        width: 90%; max-width: 500px; 
-        border-radius: 16px; padding: 30px; 
-        box-shadow: 0 0 40px rgba(251, 191, 36, 0.15);
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s;
+        backdrop-filter: blur(8px);
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .quest-card {
+        background: #09090b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        width: 90%;
+        max-width: 550px;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
         position: relative;
         overflow: hidden;
     }
-    /* Deco tech lines */
-    .quest-card::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    /* Glow effect top */
+    .quest-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--gold),
+            transparent
+        );
+        box-shadow: 0 0 30px var(--gold);
     }
 
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-    .modal-title { 
-        font-family: 'Rajdhani'; font-weight: 900; font-size: 1.8rem; margin: 0; 
-        background: linear-gradient(to right, var(--gold), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        letter-spacing: 1px;
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
     }
-    .close-btn { background: none; border: none; color: #666; font-size: 2rem; cursor: pointer; transition: 0.2s; }
-    .close-btn:hover { color: white; transform: rotate(90deg); }
-    
-    .quest-list { display: flex; flex-direction: column; gap: 15px; }
-    
-    .quest-item { 
-        background: rgba(255,255,255,0.03); 
-        border: 1px solid rgba(255,255,255,0.05); 
-        padding: 15px 20px; border-radius: 12px; 
-        display: flex; align-items: center; justify-content: space-between; gap: 15px;
-        transition: 0.3s;
-    }
-    
-    .quest-item.done { 
-        background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent); 
-        border-color: var(--success); 
-        box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
-    }
-    
-    .quest-item.claimed { 
-        opacity: 0.5; filter: grayscale(1); 
-        border-style: dashed; 
-    }
-    
-    .quest-info { flex: 1; }
-    .quest-desc { font-weight: 700; margin-bottom: 8px; color: #eee; font-size: 1rem; font-family: 'Rajdhani'; letter-spacing: 0.5px; }
-    
-    .quest-bar-bg { height: 8px; background: #222; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
-    .quest-bar-fill { 
-        height: 100%; background: var(--accent); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 0 10px var(--accent);
-    }
-    .quest-item.done .quest-bar-fill { background: var(--success); box-shadow: 0 0 10px var(--success); }
-    
-    .quest-action { min-width: 100px; text-align: right; display: flex; justify-content: flex-end; }
-    
-    .btn-claim { 
-        background: var(--gold); color: black; border: none; 
-        padding: 8px 16px; border-radius: 6px; 
-        font-weight: 800; font-family: 'Rajdhani'; font-size: 0.9rem;
-        cursor: pointer; animation: pulse 1.5s infinite;
-        box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    .modal-title {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 2rem;
+        margin: 0;
+        color: white;
         text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
-    .btn-claim:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(251, 191, 36, 0.6); }
-    
-    .quest-status { font-size: 0.9rem; color: var(--success); font-weight: 800; display: flex; align-items: center; gap: 5px; font-family: 'Rajdhani'; }
-    .quest-progress { color: #666; font-size: 1rem; font-family: 'Rajdhani'; font-weight: 800; }
-    
-    .hidden { display: none; }
+    .close-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .close-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: white;
+    }
+
+    .quest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<style is:global>
+    .quest-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 16px 20px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .quest-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    .quest-item.done {
+        background: linear-gradient(
+            90deg,
+            rgba(16, 185, 129, 0.05),
+            transparent
+        );
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    .quest-item.claimed {
+        opacity: 0.5;
+        filter: grayscale(1);
+        border-style: dashed;
+    }
+
+    .quest-info {
+        flex: 1;
+    }
+    .quest-desc {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #e4e4e7;
+        font-size: 1.05rem;
+        font-family: "Inter";
+        letter-spacing: 0.2px;
+    }
+
+    .quest-bar-bg {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .quest-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #a78bfa);
+        width: 0%;
+        border-radius: 10px;
+        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 0 15px var(--accent);
+        position: relative;
+    }
+    /* Shine effect on bar */
+    .quest-bar-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transform: skewX(-20deg) translateX(-150%);
+        animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+        100% {
+            transform: skewX(-20deg) translateX(150%);
+        }
+    }
+
+    .quest-item.done .quest-bar-fill {
+        background: var(--success);
+        box-shadow: 0 0 15px var(--success);
+    }
+
+    .quest-action {
+        min-width: 110px;
+        text-align: right;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-claim {
+        background: var(--gold);
+        color: black;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 800;
+        font-family: "Rajdhani";
+        font-size: 0.9rem;
+        cursor: pointer;
+        /* animation: pulse 2s infinite; */
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.2s;
+    }
+    .btn-claim:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+        background: #fcd34d;
+    }
+
+    .quest-status {
+        font-size: 0.85rem;
+        color: var(--success);
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "Rajdhani";
+        letter-spacing: 1px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 6px 12px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+    }
+    .quest-progress {
+        color: #e4e4e7;
+        font-size: 0.9rem;
+        font-family: "Rajdhani";
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        min-width: 60px;
+        text-align: center;
+    }
 </style>
