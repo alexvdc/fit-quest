@@ -1,5 +1,6 @@
-import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE } from '../data/fitquest.js';
-import { getSave, saveGame } from './store.js';
+import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE, QUEST_DATABASE } from '../data/fitquest.js';
+import { getSave, saveGame, getGlobalStats } from './store.js';
+import { ACHIEVEMENTS } from '../data/achievements.js';
 
 export class GameSession {
     constructor() {
@@ -198,36 +199,104 @@ export class GameSession {
         modal.classList.add('active');
     }
 
+// --- NOUVELLE FONCTION POUR METTRE A JOUR LES QUÊTES ---
+    updateQuests(card, calories, goldEarned) {
+        if (!this.state.dailyQuests || !this.state.dailyQuests.quests) return;
+
+        let hasUpdate = false;
+        
+        this.state.dailyQuests.quests.forEach(userQuest => {
+            if (userQuest.claimed) return; // Déjà fini
+
+            // Récupérer la définition statique de la quête
+            const questDef = QUEST_DATABASE.find(q => q.id === userQuest.id);
+            if (!questDef) return;
+
+            // Logique de progression selon le type
+            if (questDef.type === 'count_type' && questDef.filter === card.type) {
+                userQuest.progress += 1;
+                hasUpdate = true;
+            }
+            else if (questDef.type === 'reps' && card.unit === 'Reps') {
+                userQuest.progress += card.finalCost; // Ajoute le nombre de reps
+                hasUpdate = true;
+            }
+            else if (questDef.type === 'calories') {
+                userQuest.progress += calories;
+                hasUpdate = true;
+            }
+            else if (questDef.type === 'gold') {
+                userQuest.progress += goldEarned;
+                hasUpdate = true;
+            }
+            else if (questDef.type === 'damage') {
+                userQuest.progress += card.finalDmg;
+                hasUpdate = true;
+            }
+
+            // Cap au max
+            if (userQuest.progress > questDef.target) userQuest.progress = questDef.target;
+        });
+
+        if (hasUpdate) saveGame(this.state);
+    }
+
+    checkAchievements() {
+        const stats = getGlobalStats(this.state);
+        let hasNew = false;
+        if (!this.state.unlockedAchievements) this.state.unlockedAchievements = [];
+        ACHIEVEMENTS.forEach(ach => {
+            if (!this.state.unlockedAchievements.includes(ach.id)) {
+                if (ach.check(stats, this.state)) {
+                    this.state.unlockedAchievements.push(ach.id);
+                    this.showToast(ach);
+                    hasNew = true;
+                }
+            }
+        });
+        if (hasNew) saveGame(this.state);
+    }
+
+    showToast(ach) {
+        const container = document.body;
+        const div = document.createElement('div');
+        div.className = 'achievement-toast';
+        div.innerHTML = `<div class="toast-icon"><i data-lucide="${ach.icon}"></i></div><div class="toast-content"><div class="toast-title">SUCCÈS DÉBLOQUÉ !</div><div class="toast-name">${ach.title}</div></div>`;
+        container.appendChild(div);
+        if(window['lucide']) window['lucide'].createIcons({ root: div });
+        setTimeout(() => div.classList.add('show'), 100);
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 500); }, 4000);
+    }
+
     completeTraining() {
         if(!this.activeCard) return;
         
-        // 1. Gameplay
         this.bossHp -= this.activeCard.finalDmg;
         this.state.gold += 20; 
         this.state.playerXp = (this.state.playerXp || 0) + 50;
 
-        // 2. Historique (NOUVEAU)
+        const weight = this.state.userData?.weight || 75;
+        const met = this.activeCard.met || 4.0;
+        let durationMinutes = (this.activeCard.unit === 'Sec') ? this.activeCard.finalCost / 60 : (this.activeCard.finalCost * 3) / 60;
+        const calories = Math.round((met * 3.5 * weight) / 200 * durationMinutes);
+
+        // Historique
         if (!this.state.history) this.state.history = [];
-        this.state.history.unshift({
-            date: Date.now(), // Timestamp pour trier
-            name: this.activeCard.name,
-            value: this.activeCard.finalCost,
-            unit: this.activeCard.unit,
-            xp: 50
-        });
-        
-        // Limiter l'historique aux 50 dernières actions pour économiser le stockage
+        this.state.history.unshift({ date: Date.now(), name: this.activeCard.name, value: this.activeCard.finalCost, unit: this.activeCard.unit, xp: 50, calories: calories });
         if (this.state.history.length > 50) this.state.history.pop();
 
-        // 3. Anim Boss
+        // NOUVEAU : Mise à jour des quêtes
+        this.updateQuests(this.activeCard, calories, 20);
+
         const bossContainer = document.getElementById('bossContainer');
         if(bossContainer) {
             bossContainer.style.transform = "scale(0.9) rotate(5deg)";
             setTimeout(() => bossContainer.style.transform = "scale(1)", 300);
         }
 
-        // 4. Sauvegarde
         saveGame(this.state);
+        this.checkAchievements();
 
         if(this.bossHp <= 0) {
             this.state.level++;
@@ -240,6 +309,7 @@ export class GameSession {
         }
         this.closeModal();
     }
+
 
     startTimer(seconds, display, btn) {
         let left = seconds;

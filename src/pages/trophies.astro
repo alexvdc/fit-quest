@@ -1,0 +1,100 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Trophées">
+    <div class="trophies-page">
+        <header class="header">
+            <a href="/profile" class="btn-back">
+                <i data-lucide="arrow-left"></i> Profil</a>
+            <div class="header-title">SALLE DES TROPHÉES</div>
+        </header>
+
+        <div class="scroll-content">
+            <div class="trophies-summary">
+                <div class="summary-label">SUCCÈS DÉBLOQUÉS</div>
+                <div class="summary-val"><span id="unlockedCount">0</span> / <span id="totalCount">0</span></div>
+                <div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
+            </div>
+
+            <div id="achievementsGrid" class="achievements-grid">
+                <!-- Injecté par JS -->
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { getSave, getGlobalStats } from '../scripts/store.js';
+    import { ACHIEVEMENTS } from '../data/achievements.js';
+
+    document.addEventListener('astro:page-load', () => {
+        const state = getSave();
+        const stats = getGlobalStats(state);
+        const grid = document.getElementById('achievementsGrid');
+        
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        const unlockedIds = state.unlockedAchievements || [];
+        
+        // Mise à jour header
+        document.getElementById('unlockedCount').innerText = unlockedIds.length;
+        document.getElementById('totalCount').innerText = ACHIEVEMENTS.length;
+        document.getElementById('progressFill').style.width = `${(unlockedIds.length / ACHIEVEMENTS.length) * 100}%`;
+
+        ACHIEVEMENTS.forEach(ach => {
+            // On vérifie si c'est débloqué (soit déjà dans la liste, soit condition remplie maintenant)
+            const isUnlocked = unlockedIds.includes(ach.id) || ach.check(stats, state);
+            
+            const el = document.createElement('div');
+            el.className = `ach-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+            el.innerHTML = `
+                <div class="ach-icon">
+                    <i data-lucide="${ach.icon}"></i>
+                </div>
+                <div class="ach-info">
+                    <div class="ach-title">${ach.title}</div>
+                    <div class="ach-desc">${ach.desc}</div>
+                </div>
+                ${isUnlocked ? '<div class="check-icon"><i data-lucide="check-circle-2"></i></div>' : ''}
+            `;
+            grid.appendChild(el);
+        });
+        
+        if(window['lucide']) window['lucide'].createIcons();
+    });
+</script>
+
+<style is:global>
+    .trophies-page { height: 100vh; display: flex; flex-direction: column; background: radial-gradient(circle at top, #1a1a2e, #000); }
+    .header { padding: 20px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10; }
+    .header-title { font-family: 'Rajdhani'; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; color:white; }
+    .scroll-content { flex: 1; overflow-y: auto; padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+    .trophies-summary { text-align: center; margin-bottom: 30px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
+    .summary-label { font-size: 0.8rem; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+    .summary-val { font-family: 'Rajdhani'; font-size: 2.5rem; font-weight: 900; color: white; line-height: 1; margin-bottom: 15px; }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+    #progressFill { height: 100%; background: var(--gold); transition: width 0.5s ease; box-shadow: 0 0 10px var(--gold); }
+
+    .achievements-grid { display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
+    .ach-item { 
+        background: rgba(20, 20, 23, 0.6); border: 1px solid rgba(255,255,255,0.05); 
+        padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px;
+        transition: 0.3s; position: relative; overflow: hidden;
+    }
+    .ach-item.unlocked { border-color: var(--gold); background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(0,0,0,0)); }
+    .ach-item.locked { opacity: 0.5; filter: grayscale(1); }
+    
+    .ach-icon { 
+        width: 50px; height: 50px; background: rgba(0,0,0,0.3); border-radius: 50%; 
+        display: flex; justify-content: center; align-items: center; color: var(--gold);
+    }
+    .locked .ach-icon { color: #555; background: rgba(255,255,255,0.05); }
+    
+    .ach-info { flex: 1; }
+    .ach-title { font-family: 'Rajdhani'; font-weight: 700; color: white; font-size: 1.1rem; margin-bottom: 2px; }
+    .ach-desc { font-size: 0.8rem; color: #888; line-height: 1.2; }
+    .check-icon { color: var(--success); }
+</style>

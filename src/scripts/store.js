@@ -1,6 +1,6 @@
-import { CARDS_DATABASE, LEVEL_CURVE } from '../data/fitquest.js';
+import { CARDS_DATABASE, LEVEL_CURVE, QUEST_DATABASE } from '../data/fitquest.js';
 
-const KEY = 'fitquest_v9_rpg';
+const KEY = 'fitquest_v12_1_quests'; // Nouvelle version pour migration propre
 
 const defaultState = {
     gold: 0,
@@ -12,9 +12,15 @@ const defaultState = {
     cardRarity: {},
     lastLoginDate: null,
     currentStreak: 0,
+    history: [],
+    userData: { weight: 75, height: 175 },
+    unlockedAchievements: [],
     
-    // NOUVEAU : Historique des entraînements
-    history: [] 
+    // NOUVEAU : Quêtes du jour
+    dailyQuests: {
+        date: null, // Pour savoir quand reset
+        quests: []  // Liste des quêtes actives [{id, progress, claimed}]
+    }
 };
 
 export function getSave() {
@@ -22,12 +28,14 @@ export function getSave() {
     try {
         const saved = localStorage.getItem(KEY);
         let state = saved ? JSON.parse(saved) : defaultState;
-        
-        // Fusionner avec le défaut pour s'assurer que 'history' existe
         state = { ...defaultState, ...state };
         
+        // Patchs
+        if (!state.dailyQuests) state.dailyQuests = { date: null, quests: [] };
+
         checkUnlocks(state);
         checkStreak(state);
+        checkDailyQuests(state); // Génération des quêtes
 
         return state;
     } catch {
@@ -35,69 +43,61 @@ export function getSave() {
     }
 }
 
-// NOUVEAU : Calcul des statistiques globales
+// NOUVEAU : Générateur de quêtes
+function checkDailyQuests(state) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Si la date des quêtes n'est pas aujourd'hui, on reset
+    if (state.dailyQuests.date !== today) {
+        console.log("🔄 Génération de nouvelles quêtes pour :", today);
+        
+        // On mélange et on prend 3 quêtes au hasard
+        const shuffled = [...QUEST_DATABASE].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 3);
+        
+        state.dailyQuests = {
+            date: today,
+            quests: selected.map(q => ({
+                id: q.id,
+                progress: 0,
+                claimed: false
+            }))
+        };
+        
+        localStorage.setItem(KEY, JSON.stringify(state));
+    }
+}
+
 export function getGlobalStats(state) {
     const history = state.history || [];
-    let totalReps = 0;
-    let totalSeconds = 0;
-    
+    let totalReps = 0, totalSeconds = 0, totalCalories = 0;
     history.forEach(entry => {
-        if (entry.unit === 'Sec') {
-            totalSeconds += entry.value;
-        } else {
-            totalReps += entry.value;
-        }
+        if (entry.unit === 'Sec') totalSeconds += entry.value;
+        else totalReps += entry.value;
+        if (entry.calories) totalCalories += entry.calories;
     });
-
-    return {
-        totalSessions: history.length,
-        totalReps: totalReps,
-        totalMinutes: Math.floor(totalSeconds / 60)
-    };
+    return { totalSessions: history.length, totalReps: totalReps, totalMinutes: Math.floor(totalSeconds / 60), totalCalories: Math.floor(totalCalories) };
 }
 
 function checkStreak(state) {
     const today = new Date().toISOString().split('T')[0];
-    
-    if (!state.lastLoginDate) {
-        state.lastLoginDate = today;
-        state.currentStreak = 1;
-        saveGame(state);
-        return;
-    }
-
+    if (!state.lastLoginDate) { state.lastLoginDate = today; state.currentStreak = 1; localStorage.setItem(KEY, JSON.stringify(state)); return; }
     if (state.lastLoginDate === today) return;
-
     const last = new Date(state.lastLoginDate);
     const now = new Date(today);
-    const diffTime = Math.abs(now - last);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) {
-        state.currentStreak++;
-        state.lastLoginDate = today;
-        state.gold += 10; 
-    } else {
-        state.currentStreak = 1;
-        state.lastLoginDate = today;
-    }
-    
-    saveGame(state);
+    const diffDays = Math.ceil(Math.abs(now - last) / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) { state.currentStreak++; state.gold += 10; } 
+    else { state.currentStreak = 1; }
+    state.lastLoginDate = today;
+    localStorage.setItem(KEY, JSON.stringify(state));
 }
 
 export function saveGame(newState) {
     const current = getSave();
-    // On préserve l'historique existant si newState ne le fournit pas explicitement
     const history = newState.history || current.history || [];
-    
     const finalState = { ...current, ...newState, history };
-    
     const nextLevelXp = LEVEL_CURVE[finalState.playerLevel] || 99999;
-    if (finalState.playerXp >= nextLevelXp) {
-        finalState.playerLevel++;
-        checkUnlocks(finalState);
-    }
-
+    if (finalState.playerXp >= nextLevelXp) { finalState.playerLevel++; checkUnlocks(finalState); }
     localStorage.setItem(KEY, JSON.stringify(finalState));
     return finalState;
 }
@@ -111,9 +111,7 @@ function checkUnlocks(state) {
             hasNewUnlock = true;
         }
     });
-    if (hasNewUnlock && typeof localStorage !== 'undefined') {
-        localStorage.setItem(KEY, JSON.stringify(state));
-    }
+    if (hasNewUnlock && typeof localStorage !== 'undefined') localStorage.setItem(KEY, JSON.stringify(state));
 }
 
 export function gainXp(amount) {
