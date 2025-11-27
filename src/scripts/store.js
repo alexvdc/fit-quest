@@ -1,4 +1,5 @@
 import { CARDS_DATABASE, LEVEL_CURVE, QUEST_DATABASE } from '../data/fitquest.js';
+import { ACHIEVEMENTS } from '../data/achievements.js';
 
 const KEY = 'fitquest_v12_1_quests'; // Nouvelle version pour migration propre
 
@@ -32,6 +33,7 @@ export function getSave() {
         
         // Patchs
         if (!state.dailyQuests) state.dailyQuests = { date: null, quests: [] };
+        if (!state.unlockedAchievements) state.unlockedAchievements = [];
 
         checkUnlocks(state);
         checkStreak(state);
@@ -96,8 +98,16 @@ export function saveGame(newState) {
     const current = getSave();
     const history = newState.history || current.history || [];
     const finalState = { ...current, ...newState, history };
+    
     const nextLevelXp = LEVEL_CURVE[finalState.playerLevel] || 99999;
-    if (finalState.playerXp >= nextLevelXp) { finalState.playerLevel++; checkUnlocks(finalState); }
+    if (finalState.playerXp >= nextLevelXp) { 
+        finalState.playerLevel++; 
+        checkUnlocks(finalState); 
+    }
+    
+    // Check Achievements
+    checkAchievements(finalState);
+
     localStorage.setItem(KEY, JSON.stringify(finalState));
     return finalState;
 }
@@ -112,6 +122,26 @@ function checkUnlocks(state) {
         }
     });
     if (hasNewUnlock && typeof localStorage !== 'undefined') localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+function checkAchievements(state) {
+    if (!state.unlockedAchievements) state.unlockedAchievements = [];
+    const stats = getGlobalStats(state);
+
+    ACHIEVEMENTS.forEach(ach => {
+        if (!state.unlockedAchievements.includes(ach.id)) {
+            if (ach.check(stats, state)) {
+                state.unlockedAchievements.push(ach.id);
+                
+                // Dispatch event for Toast
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('achievement-unlocked', {
+                        detail: { title: ach.title, icon: ach.icon }
+                    }));
+                }
+            }
+        }
+    });
 }
 
 export function gainXp(amount) {

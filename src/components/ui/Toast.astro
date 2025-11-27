@@ -1,0 +1,168 @@
+---
+
+---
+
+<div id="toast-container" class="toast-container">
+    <!-- Toasts injectés ici -->
+</div>
+
+<script>
+    // Écouteur global pour les succès
+    window.addEventListener("achievement-unlocked", (e) => {
+        const { title, icon } = e.detail;
+        showToast(title, icon);
+    });
+
+    function showToast(title, iconName) {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        toast.className = "toast";
+
+        // Icone
+        let iconHtml = "";
+        // On suppose que lucide est dispo globalement ou on met un fallback
+        if (window["lucide"] && window["lucide"].icons[iconName]) {
+            // On ne peut pas facilement instancier l'icone ici sans re-parser,
+            // donc on met une balise i et on demande à lucide de refresh ou on utilise un svg inline si possible.
+            // Pour faire simple : on met le data-lucide et on appelle createIcons sur le toast
+            iconHtml = `<i data-lucide="${iconName}"></i>`;
+        } else {
+            iconHtml = `<span>🏆</span>`;
+        }
+
+        toast.innerHTML = `
+            <div class="toast-icon">${iconHtml}</div>
+            <div class="toast-content">
+                <div class="toast-label">SUCCÈS DÉBLOQUÉ !</div>
+                <div class="toast-title">${title}</div>
+            </div>
+            <div class="toast-shine"></div>
+        `;
+
+        container.appendChild(toast);
+
+        // Refresh icons juste pour ce toast
+        if (window["lucide"]) window["lucide"].createIcons({ root: toast });
+
+        // Animation Entrée
+        requestAnimationFrame(() => {
+            toast.classList.add("show");
+        });
+
+        // Son (Optionnel, à voir si on ajoute des assets audio plus tard)
+        // const audio = new Audio('/sounds/achievement.mp3');
+        // audio.play().catch(() => {});
+
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove("show");
+            toast.addEventListener("transitionend", () => {
+                toast.remove();
+            });
+        }, 4000);
+    }
+</script>
+
+<style is:global>
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none; /* Click through */
+    }
+
+    .toast {
+        background: rgba(23, 23, 23, 0.95);
+        border: 1px solid var(--gold);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px; /* Pill shape */
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.5),
+            0 0 20px rgba(251, 191, 36, 0.2);
+        min-width: 300px;
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .toast-icon {
+        background: linear-gradient(135deg, var(--gold), #f59e0b);
+        color: black;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 0 10px var(--gold);
+    }
+
+    .toast-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .toast-label {
+        font-size: 0.7rem;
+        color: var(--gold);
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-family: "Rajdhani", sans-serif;
+    }
+
+    .toast-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        font-family: "Rajdhani", sans-serif;
+        line-height: 1.1;
+    }
+
+    /* Shine Effect */
+    .toast-shine {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        transform: skewX(-20deg);
+        animation: toastShine 3s infinite;
+    }
+
+    @keyframes toastShine {
+        0% {
+            left: -100%;
+        }
+        20% {
+            left: 200%;
+        }
+        100% {
+            left: 200%;
+        }
+    }
+</style>
