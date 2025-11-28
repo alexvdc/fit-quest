@@ -18,7 +18,14 @@ const defaultState = {
     unlockedAchievements: [],
     maxStage: 1,
     
-    // NOUVEAU : Quêtes du jour
+    // Shop & Inventaire
+    inventory: ['cb_default', 'av_default'],
+    equipped: {
+        cardBack: 'cb_default',
+        avatar: 'av_default'
+    },
+
+    // Quêtes du jour
     dailyQuests: {
         date: null, // Pour savoir quand reset
         quests: []  // Liste des quêtes actives [{id, progress, claimed}]
@@ -36,6 +43,8 @@ export function getSave() {
         if (!state.dailyQuests) state.dailyQuests = { date: null, quests: [] };
         if (!state.unlockedAchievements) state.unlockedAchievements = [];
         if (!state.maxStage) state.maxStage = 1;
+        if (!state.inventory) state.inventory = ['cb_default', 'av_default'];
+        if (!state.equipped) state.equipped = { cardBack: 'cb_default', avatar: 'av_default' };
 
         checkUnlocks(state);
         checkStreak(state);
@@ -47,7 +56,29 @@ export function getSave() {
     }
 }
 
-// NOUVEAU : Générateur de quêtes
+// NOUVEAU : Actions Shop
+export function buyItem(itemId, cost) {
+    const state = getSave();
+    if (state.gold >= cost && !state.inventory.includes(itemId)) {
+        state.gold -= cost;
+        state.inventory.push(itemId);
+        saveGame(state);
+        return true;
+    }
+    return false;
+}
+
+export function equipItem(type, itemId) {
+    const state = getSave();
+    if (state.inventory.includes(itemId)) {
+        state.equipped[type] = itemId;
+        saveGame(state);
+        return true;
+    }
+    return false;
+}
+
+// Générateur de quêtes
 function checkDailyQuests(state) {
     const today = new Date().toISOString().split('T')[0];
     

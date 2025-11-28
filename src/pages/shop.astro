@@ -1,0 +1,294 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { SHOP_ITEMS } from "../data/fitquest.js";
+---
+
+<Layout title="Boutique">
+    <div class="shop-container">
+        <header class="header">
+            <a href="/" class="btn-back"
+                ><i data-lucide="arrow-left"></i> Menu</a
+            >
+            <div class="header-title">BOUTIQUE</div>
+            <div class="gold-display">💰 <span id="shopGold">...</span></div>
+        </header>
+
+        <div class="shop-content">
+            <!-- SECTION DOS DE CARTES -->
+            <h2 class="section-title">Dos de Cartes</h2>
+            <div class="items-grid" id="cardBacksContainer">
+                <!-- Injecté par JS -->
+            </div>
+
+            <!-- SECTION AVATARS -->
+            <h2 class="section-title">Avatars</h2>
+            <div class="items-grid" id="avatarsContainer">
+                <!-- Injecté par JS -->
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { getSave, buyItem, equipItem } from "../scripts/store.js";
+    import { SHOP_ITEMS } from "../data/fitquest.js";
+
+    document.addEventListener("astro:page-load", () => {
+        const goldEl = document.getElementById("shopGold");
+        const cbContainer = document.getElementById("cardBacksContainer");
+        const avContainer = document.getElementById("avatarsContainer");
+
+        if (!goldEl || !cbContainer || !avContainer) return;
+
+        function render() {
+            const state = getSave();
+            goldEl.innerText = state.gold;
+
+            renderCategory(cbContainer, "card_back", state);
+            renderCategory(avContainer, "avatar", state);
+
+            if (window["lucide"]) window["lucide"].createIcons();
+        }
+
+        function renderCategory(container, type, state) {
+            container.innerHTML = "";
+            const items = SHOP_ITEMS.filter((i) => i.type === type);
+
+            items.forEach((item) => {
+                const isOwned = state.inventory.includes(item.id);
+                const isEquipped =
+                    state.equipped.cardBack === item.id ||
+                    state.equipped.avatar === item.id;
+
+                const el = document.createElement("div");
+                el.className = `shop-item ${isOwned ? "owned" : ""} ${isEquipped ? "equipped" : ""}`;
+
+                let visual = "";
+                if (type === "card_back") {
+                    visual = `<div class="card-preview ${item.cssClass}"></div>`;
+                } else {
+                    visual = `<div class="avatar-preview">${item.icon}</div>`;
+                }
+
+                let actionBtn = "";
+                if (isEquipped) {
+                    actionBtn = `<button class="btn-action equipped" disabled>Équipé</button>`;
+                } else if (isOwned) {
+                    actionBtn = `<button class="btn-action equip" data-id="${item.id}" data-type="${type}">Équiper</button>`;
+                } else {
+                    const canBuy = state.gold >= item.cost;
+                    actionBtn = `<button class="btn-action buy" data-id="${item.id}" data-cost="${item.cost}" ${!canBuy ? "disabled" : ""}>Acheter ${item.cost} 💰</button>`;
+                }
+
+                el.innerHTML = `
+                    ${visual}
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-desc">${item.description}</div>
+                        ${actionBtn}
+                    </div>
+                `;
+
+                // Event Listeners
+                const btn = el.querySelector("button");
+                if (btn && !btn.disabled) {
+                    btn.onclick = () => {
+                        if (btn.classList.contains("buy")) {
+                            if (buyItem(item.id, item.cost)) {
+                                render(); // Re-render to update state
+                            } else {
+                                alert("Pas assez d'or !");
+                            }
+                        } else if (btn.classList.contains("equip")) {
+                            if (
+                                equipItem(
+                                    type === "card_back"
+                                        ? "cardBack"
+                                        : "avatar",
+                                    item.id,
+                                )
+                            ) {
+                                render();
+                            }
+                        }
+                    };
+                }
+
+                container.appendChild(el);
+            });
+        }
+
+        render();
+    });
+</script>
+
+<style is:global>
+    .shop-container {
+        min-height: 100vh;
+        background: #1e1e24;
+        color: white;
+        padding-bottom: 50px;
+    }
+
+    .header {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header-title {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+    .btn-back {
+        color: #aaa;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+    }
+    .gold-display {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        color: var(--gold);
+        font-size: 1.2rem;
+    }
+
+    .shop-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section-title {
+        font-family: "Rajdhani";
+        font-size: 1.5rem;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .shop-item {
+        background: #2a2a35;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: 0.3s;
+    }
+    .shop-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    .shop-item.equipped {
+        border-color: var(--success);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+
+    /* PREVIEWS */
+    .card-preview {
+        width: 80px;
+        height: 120px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        background-size: cover;
+        background-position: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+    /* Styles des dos de cartes (simulés ici, à synchroniser avec global.css si besoin) */
+    .back-default {
+        background: linear-gradient(135deg, #444, #222);
+        border: 2px solid #666;
+    }
+    .back-gold {
+        background: linear-gradient(135deg, #ffd700, #b8860b);
+        border: 2px solid #fff;
+    }
+    .back-cyber {
+        background: #000;
+        border: 2px solid #0ff;
+        box-shadow: 0 0 10px #0ff inset;
+    }
+    .back-nature {
+        background: #2e7d32;
+        border: 2px solid #81c784;
+    }
+
+    .avatar-preview {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .item-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+    .item-desc {
+        font-size: 0.8rem;
+        color: #aaa;
+        margin-bottom: 15px;
+        height: 30px; /* Fix height for alignment */
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-action.buy {
+        background: var(--gold);
+        color: black;
+    }
+    .btn-action.buy:hover {
+        filter: brightness(1.1);
+    }
+    .btn-action.buy:disabled {
+        background: #555;
+        color: #888;
+        cursor: not-allowed;
+    }
+    .btn-action.equip {
+        background: #3b82f6;
+        color: white;
+    }
+    .btn-action.equip:hover {
+        background: #2563eb;
+    }
+    .btn-action.equipped {
+        background: var(--success);
+        color: white;
+        cursor: default;
+    }
+</style>

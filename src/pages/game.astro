@@ -1,6 +1,6 @@
 ---
-import Modals from '../components/ui/Modals.astro';
-import Layout from '../layouts/Layout.astro';
+import Modals from "../components/ui/Modals.astro";
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="Combat">
@@ -8,7 +8,7 @@ import Layout from '../layouts/Layout.astro';
         <!-- HUD -->
         <header class="hud">
             <a href="/" class="btn-back">Abandon</a>
-            
+
             <!-- BARRE SEMAINE -->
             <div class="week-bar">
                 <div class="day" data-d="1">L</div>
@@ -28,45 +28,37 @@ import Layout from '../layouts/Layout.astro';
             <div class="boss-wrapper" id="bossContainer">
                 <img id="bossImage" class="boss-img" src="" />
             </div>
-            
+
             <div class="boss-stats">
                 <h2 id="bossName" class="boss-name">...</h2>
-                <div class="hp-bar-bg"><div id="hpFill" class="hp-bar-fill"></div></div>
+                <div class="hp-bar-bg">
+                    <div id="hpFill" class="hp-bar-fill"></div>
+                </div>
                 <div id="bossHpText" class="hp-text">...</div>
             </div>
         </main>
 
         <!-- MAIN -->
-        <footer id="handArea" class="hand-area">
-            <!-- Cartes injectées par JS -->
-        </footer>
+        <div class="game-area">
+            <footer id="handArea" class="hand-area">
+                <!-- Cartes injectées par JS -->
+            </footer>
+        </div>
     </div>
-    
+
     <!-- Modales -->
-    <slot name="modals" /> 
+    <slot name="modals" />
     <Modals />
-    
-    <!-- Si Modals n'est pas dans le Layout, on peut l'ajouter via un slot ou composant ici. 
-         Pour l'instant on suppose qu'il est géré par le Layout ou via le slot ci-dessus -->
+
+    <div id="modals-container"></div>
 </Layout>
 
-<!-- Import des modales si elles ne sont pas dans le Layout global -->
 <script>
-    import '../components/ui/Modals.astro'; 
-</script>
-<!-- Note: Si Modals est un composant Astro, il doit être utilisé dans le template, pas le script -->
-<!-- Correction par rapport à ton setup : je présume que tu l'as déjà intégré ou via Layout -->
-<!-- Ajoutons le conteneur Modals ici pour être sûr si ce n'est pas fait -->
-<div id="modals-container">
-    <!-- Le composant Modals.astro devrait être rendu ici -->
-</div>
+    import { GameSession } from "../scripts/gameLogic.js";
 
-<script>
-    import { GameSession } from '../scripts/gameLogic.js';
-    
-    document.addEventListener('astro:page-load', () => {
+    document.addEventListener("astro:page-load", () => {
         // SÉCURITÉ : On vérifie que l'arène existe
-        if (!document.getElementById('arena')) return;
+        if (!document.getElementById("arena")) return;
 
         const session = new GameSession();
         session.init();
@@ -74,22 +66,46 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <style>
-    .game-layout { height: 100vh; display: grid; grid-template-rows: 70px 1fr 300px; max-width: 800px; margin: 0 auto; overflow: hidden; }
-    
-    .hud { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 20; }
-    .gold-display { font-family: 'Rajdhani'; font-weight: 800; color: var(--gold); font-size: 1.2rem; }
-    
+    .game-layout {
+        height: 100vh;
+        display: grid;
+        grid-template-rows: 70px 1fr 300px;
+        max-width: 800px;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        z-index: 20;
+    }
+    .gold-display {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        color: var(--gold);
+        font-size: 1.2rem;
+    }
+
     /* STYLE BARRE SEMAINE */
     .week-bar {
-        display: flex; gap: 5px;
-        background: rgba(0,0,0,0.4);
-        padding: 8px 15px; border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        gap: 5px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 15px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(5px);
     }
     .day {
-        font-family: 'Rajdhani'; font-weight: 700; color: #555;
-        width: 20px; text-align: center; font-size: 0.9rem;
+        font-family: "Rajdhani";
+        font-weight: 700;
+        color: #555;
+        width: 20px;
+        text-align: center;
+        font-size: 0.9rem;
         transition: 0.3s;
     }
     .day.active {
@@ -97,52 +113,231 @@ import Layout from '../layouts/Layout.astro';
         text-shadow: 0 0 10px var(--accent);
         transform: scale(1.3);
     }
-    
-    .arena { display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    
-    .boss-wrapper { 
-        width: 200px; height: 200px; border-radius: 50%; overflow: hidden;
-        border: 4px solid rgba(255,255,255,0.1); 
-        box-shadow: 0 0 50px rgba(0,0,0,0.5); margin-bottom: 20px; transition: transform 0.1s;
+
+    .arena {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
-    .boss-img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .boss-name { font-family: 'Rajdhani'; font-weight: 800; font-size: 2rem; text-transform: uppercase; margin-bottom: 10px;}
-    .hp-bar-bg { width: 250px; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; }
-    .hp-bar-fill { width: 100%; height: 100%; background: var(--damage); transition: width 0.3s; }
-    .hp-text { margin-top: 5px; font-size: 0.8rem; color: var(--text-muted); font-family: 'Rajdhani'; }
-    
-    .hand-area { display: flex; justify-content: center; align-items: flex-end; gap: 15px; padding-bottom: 30px; }
+
+    .boss-wrapper {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        margin-bottom: 20px;
+        transition: transform 0.1s;
+    }
+    .boss-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .boss-name {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 2rem;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    .hp-bar-bg {
+        width: 250px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .hp-bar-fill {
+        width: 100%;
+        height: 100%;
+        background: var(--damage);
+        transition: width 0.3s;
+    }
+    .hp-text {
+        margin-top: 5px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-family: "Rajdhani";
+    }
+
+    .game-area {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .hand-area {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 15px;
+        padding-bottom: 30px;
+        perspective: 1000px;
+    }
+
+    /* --- ANIMATIONS --- */
+    :global(@keyframes boss-shake) {
+        0% {
+            transform: translate(0, 0) rotate(0deg);
+        }
+        25% {
+            transform: translate(-10px, 10px) rotate(-5deg);
+        }
+        50% {
+            transform: translate(10px, -10px) rotate(5deg);
+        }
+        75% {
+            transform: translate(-10px, 10px) rotate(-5deg);
+        }
+        100% {
+            transform: translate(0, 0) rotate(0deg);
+        }
+    }
+
+    :global(.boss-hit) {
+        animation: boss-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.8)) brightness(1.5)
+            sepia(1) hue-rotate(-50deg) saturate(3);
+    }
+
+    :global(.damage-popup) {
+        position: absolute;
+        left: 50%;
+        top: 30%;
+        transform: translate(-50%, -50%);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 5rem;
+        font-weight: 900;
+        background: linear-gradient(to bottom, #fff, #ff4444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.8));
+        pointer-events: none;
+        z-index: 1000;
+        animation: damage-float 1.2s ease-out forwards;
+    }
+
+    :global(@keyframes damage-float) {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, -20%) scale(0.5) rotate(-10deg);
+        }
+        15% {
+            opacity: 1;
+            transform: translate(-50%, -80%) scale(1.5) rotate(0deg);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -150%) scale(1);
+        }
+    }
+
+    /* Card Animation Styles */
+    :global(.card) {
+        transition:
+            transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+            opacity 0.6s;
+        transform-style: preserve-3d;
+    }
+    :global(.card.facedown) {
+        transform: rotateY(180deg) !important;
+    }
+    :global(.card.dealing) {
+        opacity: 0;
+        transform: translateY(100px) scale(0.5) rotateY(180deg) !important;
+    }
+    :global(.card-back-face) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        transform: rotateY(180deg);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Card Back Styles */
+    :global(.back-default) {
+        background: linear-gradient(135deg, #2a2a35 0%, #15151a 100%);
+        border: 2px solid #444;
+    }
+    :global(.back-gold) {
+        background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+        border: 2px solid #ffd700;
+    }
+    :global(.back-cyber) {
+        background: repeating-linear-gradient(
+            45deg,
+            #000,
+            #000 10px,
+            #0ff 10px,
+            #0ff 11px
+        );
+        border: 2px solid #0ff;
+    }
+    :global(.back-nature) {
+        background: url("https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=300&q=80");
+        background-size: cover;
+        border: 2px solid #4caf50;
+    }
 
     /* --- RESPONSIVE MOBILE --- */
     @media (max-width: 640px) {
         .game-layout {
-            /* On réduit la place réservée à la main en bas (220px au lieu de 300px) */
             grid-template-rows: 60px 1fr 220px;
         }
 
-        /* HUD Compact */
-        .hud { padding: 0 10px; }
-        .btn-back { font-size: 0.7rem; padding: 6px 10px; }
-        .gold-display { font-size: 1rem; }
-        
-        .week-bar { padding: 5px 10px; gap: 2px; }
-        .day { width: 15px; font-size: 0.8rem; }
+        .hud {
+            padding: 0 10px;
+        }
+        .btn-back {
+            font-size: 0.7rem;
+            padding: 6px 10px;
+        }
+        .gold-display {
+            font-size: 1rem;
+        }
 
-        /* Boss plus petit pour laisser de la place */
-        .boss-wrapper { width: 150px; height: 150px; margin-bottom: 10px; }
-        .boss-name { font-size: 1.5rem; margin-bottom: 5px; }
-        .hp-bar-bg { width: 200px; height: 8px; }
+        .week-bar {
+            padding: 5px 10px;
+            gap: 2px;
+        }
+        .day {
+            width: 15px;
+            font-size: 0.8rem;
+        }
 
-        /* OVERRIDE DE LA TAILLE DES CARTES */
+        .boss-wrapper {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        .boss-name {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .hp-bar-bg {
+            width: 200px;
+            height: 8px;
+        }
+
         .hand-area {
-            /* On redéfinit les variables globales juste pour cette zone */
             --card-width: 110px;
             --card-height: 160px;
-            --card-radius: 10px; /* Coins moins arrondis */
-            
+            --card-radius: 10px;
+
             gap: 8px;
-            padding-bottom: 80px; /* Espace pour le pouce en bas */
+            padding-bottom: 80px;
             align-items: center;
         }
     }

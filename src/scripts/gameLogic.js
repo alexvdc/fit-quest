@@ -1,4 +1,4 @@
-import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE, QUEST_DATABASE, WORLD_MAP } from '../data/fitquest.js';
+import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE, QUEST_DATABASE, WORLD_MAP, SHOP_ITEMS } from '../data/fitquest.js';
 import { getSave, saveGame, getGlobalStats } from './store.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 
@@ -15,9 +15,8 @@ export class GameSession {
         if (!document.getElementById('arena')) return;
         console.log("🎮 GameSession: Initialisation...");
         
-        // Afficher le thème du jour dans l'UI si possible
         this.showDailyTheme();
-        this.updateWeekBar(); // <-- NOUVEL APPEL
+        this.updateWeekBar();
 
         this.spawnBoss();
         this.dealHand();
@@ -25,9 +24,8 @@ export class GameSession {
         this.bindModalEvents();
     }
 
-    // --- GESTION BARRE SEMAINE ---
     updateWeekBar() {
-        const today = new Date().getDay(); // 0 (Dim) à 6 (Sam)
+        const today = new Date().getDay();
         const days = document.querySelectorAll('.week-bar .day');
         
         days.forEach(dayEl => {
@@ -43,8 +41,6 @@ export class GameSession {
     showDailyTheme() {
         const today = new Date().getDay();
         const schedule = WEEKLY_SCHEDULE[today];
-        // Si tu as un élément pour afficher le thème, on l'utilise
-        // Sinon on pourrait l'ajouter plus tard dans le HUD
         console.log(`📅 Programme du jour : ${schedule.name} (${schedule.desc})`);
     }
 
@@ -93,7 +89,6 @@ export class GameSession {
         if(colGold) colGold.innerText = this.state.gold;
     }
 
-    // --- CRÉATION CARTE (HOLO) ---
     createCardDOM(cardData, isCollection = true) {
         const lvl = this.state.cardLevels[cardData.id] || 1;
         const rarity = this.state.cardRarity[cardData.id] || 'common';
@@ -260,62 +255,75 @@ export class GameSession {
 
     completeTraining() {
         if(!this.activeCard) return;
-        
-        this.bossHp -= this.activeCard.finalDmg;
-        this.state.gold += 20; 
-        this.state.playerXp = (this.state.playerXp || 0) + 50;
 
-        const weight = this.state.userData?.weight || 75;
-        const met = this.activeCard.met || 4.0;
-        let durationMinutes = (this.activeCard.unit === 'Sec') ? this.activeCard.finalCost / 60 : (this.activeCard.finalCost * 3) / 60;
-        const calories = Math.round((met * 3.5 * weight) / 200 * durationMinutes);
-
-        if (!this.state.history) this.state.history = [];
-        this.state.history.unshift({ date: Date.now(), name: this.activeCard.name, value: this.activeCard.finalCost, unit: this.activeCard.unit, xp: 50, calories: calories });
-        if (this.state.history.length > 50) this.state.history.pop();
-
-        this.updateQuests(this.activeCard, calories, 20);
-
-        const bossContainer = document.getElementById('bossContainer');
-        if(bossContainer) {
-            bossContainer.style.transform = "scale(0.9) rotate(5deg)";
-            setTimeout(() => bossContainer.style.transform = "scale(1)", 300);
-        }
-
-        saveGame(this.state);
-        this.checkAchievements();
-
-        if(this.bossHp <= 0) {
-            // VICTOIRE
-            const urlParams = new URLSearchParams(window.location.search);
-            const stageId = parseInt(urlParams.get('stage'));
-
-            if (stageId) {
-                // Mode Histoire
-                const stage = WORLD_MAP.find(s => s.id === stageId);
-                const reward = stage ? stage.goldReward : 50;
-                
-                this.state.gold += reward;
-                
-                // Unlock next stage
-                if (this.state.maxStage <= stageId) {
-                    this.state.maxStage = stageId + 1;
+        const hand = document.getElementById('handArea');
+        let cardEl = null;
+        if (hand) {
+            const cards = hand.querySelectorAll('.card');
+            cards.forEach(c => {
+                if (c.querySelector('.card-title').innerText === this.activeCard.name) {
+                    cardEl = c;
                 }
-                
-                saveGame(this.state);
-                alert(`VICTOIRE ! +${reward} OR ! Stage suivant débloqué !`);
-                window.location.href = '/map';
-            } else {
-                // Mode Arcade
-                this.state.level++;
-                saveGame(this.state);
-                alert("BOSS VAINCU ! NIVEAU SUIVANT !");
-                window.location.reload();
-            }
-        } else {
-            this.updateUI();
-            this.dealHand();
+            });
         }
+
+        this.animateCardThrow(cardEl, () => {
+            // Trigger boss damage animation
+            this.animateBossDamage(this.activeCard.finalDmg);
+            
+            this.bossHp -= this.activeCard.finalDmg;
+            this.state.gold += 20; 
+            this.state.playerXp = (this.state.playerXp || 0) + 50;
+
+            const weight = this.state.userData?.weight || 75;
+            const met = this.activeCard.met || 4.0;
+            let durationMinutes = (this.activeCard.unit === 'Sec') ? this.activeCard.finalCost / 60 : (this.activeCard.finalCost * 3) / 60;
+            const calories = Math.round((met * 3.5 * weight) / 200 * durationMinutes);
+
+            if (!this.state.history) this.state.history = [];
+            this.state.history.unshift({ date: Date.now(), name: this.activeCard.name, value: this.activeCard.finalCost, unit: this.activeCard.unit, xp: 50, calories: calories });
+            if (this.state.history.length > 50) this.state.history.pop();
+
+            this.updateQuests(this.activeCard, calories, 20);
+
+            const bossContainer = document.getElementById('bossContainer');
+            if(bossContainer) {
+                bossContainer.style.transform = "scale(0.9) rotate(5deg)";
+                setTimeout(() => bossContainer.style.transform = "scale(1)", 300);
+            }
+            
+            saveGame(this.state);
+            this.checkAchievements();
+
+            if(this.bossHp <= 0) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const stageId = parseInt(urlParams.get('stage'));
+
+                if (stageId) {
+                    const stage = WORLD_MAP.find(s => s.id === stageId);
+                    const reward = stage ? stage.goldReward : 50;
+                    
+                    this.state.gold += reward;
+                    
+                    if (this.state.maxStage <= stageId) {
+                        this.state.maxStage = stageId + 1;
+                    }
+                    
+                    saveGame(this.state);
+                    alert(`VICTOIRE ! +${reward} OR ! Stage suivant débloqué !`);
+                    window.location.href = '/map';
+                } else {
+                    this.state.level++;
+                    saveGame(this.state);
+                    alert("BOSS VAINCU ! NIVEAU SUIVANT !");
+                    window.location.reload();
+                }
+            } else {
+                this.updateUI();
+                this.dealHand();
+            }
+        });
+        
         this.closeModal();
     }
 
@@ -345,11 +353,12 @@ export class GameSession {
         this.activeCard = null;
     }
 
+
+
     spawnBoss() {
         const bossEl = document.getElementById('bossName');
         if(!bossEl) return;
         
-        // Récupérer le stage depuis l'URL
         const urlParams = new URLSearchParams(window.location.search);
         const stageId = parseInt(urlParams.get('stage'));
         
@@ -357,17 +366,14 @@ export class GameSession {
         let hpMult = 1;
 
         if (stageId) {
-            // MODE HISTOIRE
             const stage = WORLD_MAP.find(s => s.id === stageId);
             if (stage) {
                 boss = BOSSES_DATA[stage.bossIndex];
-                // HP augmente avec le stage
                 hpMult = boss.hpMultiplier + (stageId * 0.2);
                 console.log(`⚔️ Mode Histoire : Stage ${stageId} vs ${boss.name}`);
             }
         }
 
-        // Fallback Mode Arcade (si pas de stage ou stage invalide)
         if (!boss) {
             let lvl = this.state.level;
             if (!lvl || lvl < 1) lvl = 1; 
@@ -390,6 +396,11 @@ export class GameSession {
         const hand = document.getElementById('handArea');
         if(!hand) return;
         hand.innerHTML = '';
+
+        // Récupérer le dos de carte équipé
+        const equippedBackId = this.state.equipped?.cardBack || 'cb_default';
+        const shopItem = SHOP_ITEMS.find(i => i.id === equippedBackId);
+        const backClass = shopItem ? shopItem.cssClass : 'back-default';
 
         const today = new Date().getDay();
         const dailySchedule = WEEKLY_SCHEDULE[today];
@@ -420,9 +431,73 @@ export class GameSession {
             attempts++;
         }
 
-        handCards.forEach(card => {
-            hand.appendChild(this.createCardDOM(card, false));
+        handCards.forEach((card, index) => {
+            const cardEl = this.createCardDOM(card, false);
+            
+            const backEl = document.createElement('div');
+            backEl.className = `card-back-face ${backClass}`;
+            cardEl.appendChild(backEl);
+
+            cardEl.classList.add('facedown');
+            cardEl.classList.add('dealing');
+            hand.appendChild(cardEl);
+
+            setTimeout(() => {
+                cardEl.classList.remove('dealing');
+                setTimeout(() => {
+                    cardEl.classList.remove('facedown');
+                }, 600 + (index * 400));
+            }, 100 + (index * 200));
         });
+    }
+
+    animateCardThrow(cardElement, callback) {
+        if (!cardElement) { if(callback) callback(); return; }
+
+        cardElement.classList.add('facedown');
+        
+        setTimeout(() => {
+            cardElement.style.transition = "all 0.8s cubic-bezier(0.22, 1, 0.36, 1)";
+            cardElement.style.transform = "translateY(-300px) scale(0.2) rotateX(180deg)";
+            cardElement.style.opacity = "0";
+
+            setTimeout(() => {
+                if(callback) callback();
+                cardElement.remove();
+            }, 600);
+        }, 600);
+    }
+
+    animateBossDamage(amount) {
+        const bossImg = document.getElementById('bossImage');
+        const arena = document.getElementById('arena');
+        
+        // 1. Shake & Flash Boss
+        if (bossImg) {
+            bossImg.classList.remove('boss-hit');
+            void bossImg.offsetWidth; // Trigger reflow
+            bossImg.classList.add('boss-hit');
+
+            setTimeout(() => {
+                bossImg.classList.remove('boss-hit');
+            }, 1000);
+        }
+
+        // 2. Floating Damage Text
+        if (arena) {
+            const dmgEl = document.createElement('div');
+            dmgEl.className = 'damage-popup';
+            dmgEl.innerText = `-${amount}`;
+            arena.appendChild(dmgEl);
+            
+            // Remove after animation
+            setTimeout(() => {
+                dmgEl.remove();
+            }, 1200);
+        }
+
+        // 3. Vibrate
+        if (navigator.vibrate) navigator.vibrate(200);
     }
 
     updateUI() {

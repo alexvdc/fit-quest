@@ -42,6 +42,76 @@ export const WORLD_MAP = [
     { id: 5, name: "Le Toit", bossIndex: 4, goldReward: 300, desc: "Le combat final contre le Roi." }
 ];
 
+export const SHOP_ITEMS = [
+    // --- DOS DE CARTES ---
+    { 
+        id: 'cb_default', 
+        type: 'card_back', 
+        name: 'Classique', 
+        cost: 0, 
+        cssClass: 'back-default',
+        description: "Le dos de carte standard."
+    },
+    { 
+        id: 'cb_gold', 
+        type: 'card_back', 
+        name: 'Héritage Doré', 
+        cost: 200, 
+        cssClass: 'back-gold',
+        description: "Un dos de carte qui brille de mille feux."
+    },
+    { 
+        id: 'cb_cyber', 
+        type: 'card_back', 
+        name: 'Cyber-Grid', 
+        cost: 350, 
+        cssClass: 'back-cyber',
+        description: "Un design futuriste pour les guerriers digitaux."
+    },
+    { 
+        id: 'cb_nature', 
+        type: 'card_back', 
+        name: 'Esprit Sylvestre', 
+        cost: 150, 
+        cssClass: 'back-nature',
+        description: "Pour ceux qui aiment s'entraîner dehors."
+    },
+
+    // --- AVATARS ---
+    { 
+        id: 'av_default', 
+        type: 'avatar', 
+        name: 'Recrue', 
+        cost: 0, 
+        icon: '👤',
+        description: "L'avatar de base."
+    },
+    { 
+        id: 'av_ninja', 
+        type: 'avatar', 
+        name: 'Ninja', 
+        cost: 250, 
+        icon: '🥷',
+        description: "Discret et rapide."
+    },
+    { 
+        id: 'av_robot', 
+        type: 'avatar', 
+        name: 'Mecha-Fit', 
+        cost: 400, 
+        icon: '🤖',
+        description: "La technologie au service du sport."
+    },
+    { 
+        id: 'av_king', 
+        type: 'avatar', 
+        name: 'Roi de la Salle', 
+        cost: 1000, 
+        icon: '👑',
+        description: "Pour ceux qui soulèvent lourd."
+    }
+];
+
 // BASE DE DONNÉES DES QUÊTES
 export const QUEST_DATABASE = [
     // Quêtes de Type

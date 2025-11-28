@@ -48,7 +48,7 @@ import { WORLD_MAP } from "../data/fitquest.js";
 
 <script>
     import { getSave, saveGame } from "../scripts/store.js";
-    import { WORLD_MAP, BOSSES_DATA } from "../data/fitquest.js";
+    import { WORLD_MAP, BOSSES_DATA, SHOP_ITEMS } from "../data/fitquest.js";
 
     document.addEventListener("astro:page-load", () => {
         const state = getSave();
@@ -57,6 +57,11 @@ import { WORLD_MAP } from "../data/fitquest.js";
 
         if (goldEl) goldEl.innerText = state.gold;
         if (!container) return;
+
+        // Récupérer l'avatar équipé
+        const equippedAvatarId = state.equipped?.avatar || "av_default";
+        const avatarItem = SHOP_ITEMS.find((i) => i.id === equippedAvatarId);
+        const avatarIcon = avatarItem ? avatarItem.icon : "👤";
 
         // S'assurer que maxStage est init
         if (!state.maxStage) {
@@ -89,7 +94,7 @@ import { WORLD_MAP } from "../data/fitquest.js";
             } else {
                 // Current
                 content = `
-                    <div class="player-avatar">👤</div>
+                    <div class="player-avatar">${avatarIcon}</div>
                     <div class="node-icon boss-icon" style="background-image: url('${bossData.artQuery}')"></div>
                     <div class="pulse-ring"></div>
                 `;
