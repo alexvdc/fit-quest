@@ -16,6 +16,7 @@ const defaultState = {
     history: [],
     userData: { weight: 75, height: 175 },
     unlockedAchievements: [],
+    maxStage: 1,
     
     // NOUVEAU : Quêtes du jour
     dailyQuests: {
@@ -34,6 +35,7 @@ export function getSave() {
         // Patchs
         if (!state.dailyQuests) state.dailyQuests = { date: null, quests: [] };
         if (!state.unlockedAchievements) state.unlockedAchievements = [];
+        if (!state.maxStage) state.maxStage = 1;
 
         checkUnlocks(state);
         checkStreak(state);

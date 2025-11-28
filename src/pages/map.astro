@@ -1,0 +1,400 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { WORLD_MAP } from "../data/fitquest.js";
+---
+
+<Layout title="Carte du Monde">
+    <div class="map-container">
+        <header class="header">
+            <a href="/" class="btn-back"
+                ><i data-lucide="arrow-left"></i> Menu</a
+            >
+            <div class="header-title">AVENTURE</div>
+            <div class="gold-display">💰 <span id="mapGold">...</span></div>
+        </header>
+
+        <div class="map-scroll">
+            <div class="map-path">
+                <!-- Ligne de chemin (SVG) -->
+                <svg class="path-svg" width="100%" height="100%">
+                    <!-- Chemin gris (fond) -->
+                    <path
+                        id="pathLine"
+                        d=""
+                        stroke="rgba(255,255,255,0.1)"
+                        stroke-width="4"
+                        fill="none"
+                        stroke-dasharray="10,10"></path>
+
+                    <!-- Chemin Or (Progression) -->
+                    <path
+                        id="goldPathLine"
+                        d=""
+                        stroke="var(--gold)"
+                        stroke-width="4"
+                        fill="none"
+                        filter="drop-shadow(0 0 5px var(--gold))"
+                        stroke-linecap="round"
+                        style="transition: d 1s ease;"></path>
+                </svg>
+
+                <div id="stagesContainer" class="stages-container">
+                    <!-- Injecté par JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { getSave, saveGame } from "../scripts/store.js";
+    import { WORLD_MAP, BOSSES_DATA } from "../data/fitquest.js";
+
+    document.addEventListener("astro:page-load", () => {
+        const state = getSave();
+        const container = document.getElementById("stagesContainer");
+        const goldEl = document.getElementById("mapGold");
+
+        if (goldEl) goldEl.innerText = state.gold;
+        if (!container) return;
+
+        // S'assurer que maxStage est init
+        if (!state.maxStage) {
+            state.maxStage = 1;
+            saveGame(state);
+        }
+
+        container.innerHTML = "";
+
+        WORLD_MAP.forEach((stage, index) => {
+            const isLocked = stage.id > state.maxStage;
+            const isCompleted = stage.id < state.maxStage;
+            const isCurrent = stage.id === state.maxStage;
+
+            const bossData = BOSSES_DATA[stage.bossIndex] || BOSSES_DATA[0];
+
+            const el = document.createElement("div");
+            el.className = `stage-node ${isLocked ? "locked" : ""} ${isCompleted ? "completed" : ""} ${isCurrent ? "current" : ""}`;
+            el.dataset.id = String(stage.id); // Pour le repérage
+
+            // Ajustement position pour éviter le cutoff en haut (100px min)
+            el.style.left = `${index % 2 === 0 ? 25 : 75}%`; // Zigzag un peu moins large pour mobile
+            el.style.top = `${index * 160 + 100}px`;
+
+            let content = "";
+            if (isLocked) {
+                content = `<div class="node-icon"><i data-lucide="lock"></i></div>`;
+            } else if (isCompleted) {
+                content = `<div class="node-icon"><i data-lucide="check"></i></div><div class="stars">⭐⭐⭐</div>`;
+            } else {
+                // Current
+                content = `
+                    <div class="player-avatar">👤</div>
+                    <div class="node-icon boss-icon" style="background-image: url('${bossData.artQuery}')"></div>
+                    <div class="pulse-ring"></div>
+                `;
+            }
+
+            el.innerHTML = `
+                ${content}
+                <div class="stage-info">
+                    <div class="stage-name">${stage.name}</div>
+                    <div class="stage-reward">${stage.goldReward} 💰</div>
+                </div>
+            `;
+
+            if (!isLocked) {
+                el.onclick = () => {
+                    // Lancer le combat avec le paramètre stage
+                    window.location.href = `/game?stage=${stage.id}`;
+                };
+            }
+
+            container.appendChild(el);
+        });
+
+        // Dessiner le chemin
+        setTimeout(() => drawPath(state.maxStage), 100);
+        window.addEventListener("resize", () => drawPath(state.maxStage));
+
+        if (window["lucide"]) window["lucide"].createIcons();
+    });
+
+    function drawPath(maxStage) {
+        const nodes = document.querySelectorAll(".stage-node");
+        const path = document.getElementById("pathLine");
+        const goldPath = document.getElementById("goldPathLine");
+        const container = document.querySelector(".map-path");
+
+        if (!path || !goldPath || nodes.length < 2 || !container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        let dFull = "";
+        let dGold = "";
+
+        // On parcourt tous les noeuds pour construire le chemin complet
+        nodes.forEach((nodeEl, i) => {
+            const node = nodeEl;
+            const rect = node.getBoundingClientRect();
+
+            // Coordonnées relatives au container SVG
+            const x = rect.left - containerRect.left + rect.width / 2;
+            const y = rect.top - containerRect.top + rect.height / 2;
+
+            if (i === 0) {
+                const moveCmd = `M ${x} ${y}`;
+                dFull += moveCmd;
+                dGold += moveCmd;
+            } else {
+                const prevNode = nodes[i - 1];
+                const prevRect = prevNode.getBoundingClientRect();
+                const prevX =
+                    prevRect.left - containerRect.left + prevRect.width / 2;
+                const prevY =
+                    prevRect.top - containerRect.top + prevRect.height / 2;
+
+                const c1x = prevX;
+                const c1y = (prevY + y) / 2;
+                const c2x = x;
+                const c2y = (prevY + y) / 2;
+
+                const curveCmd = ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x} ${y}`;
+                dFull += curveCmd;
+
+                // Si le noeud actuel est débloqué (ou est le noeud courant), on ajoute au chemin or
+                // On vérifie l'ID du stage stocké dans le dataset
+                // @ts-ignore
+                const stageId = parseInt(node.dataset.id);
+                if (stageId <= maxStage) {
+                    dGold += curveCmd;
+                }
+            }
+        });
+
+        path.setAttribute("d", dFull);
+        goldPath.setAttribute("d", dGold);
+
+        // Animation simple pour le chemin or
+        // @ts-ignore
+        const length = goldPath.getTotalLength();
+        goldPath.style.strokeDasharray = length;
+        goldPath.style.strokeDashoffset = length;
+        goldPath.getBoundingClientRect();
+        goldPath.style.transition = "stroke-dashoffset 1.5s ease-out";
+        goldPath.style.strokeDashoffset = "0";
+    }
+</script>
+
+<style is:global>
+    .map-container {
+        height: 100vh;
+        background: radial-gradient(circle at center, #1e1e24, #000);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .header {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header-title {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+        color: white;
+    }
+    .btn-back {
+        color: #aaa;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+    }
+    .gold-display {
+        font-family: "Rajdhani";
+        font-weight: 800;
+        color: var(--gold);
+        font-size: 1.2rem;
+    }
+
+    .map-scroll {
+        flex: 1;
+        overflow-y: auto;
+        position: relative;
+        padding-bottom: 100px; /* Espace fin */
+    }
+
+    .map-path {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        height: 1000px; /* Assez grand pour tous les niveaux */
+    }
+
+    .path-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: visible;
+    }
+
+    #pathLine {
+        stroke: rgba(255, 255, 255, 0.2);
+        stroke-width: 4;
+        fill: none;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+    }
+
+    .stage-node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 2;
+    }
+    .stage-node:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+        z-index: 10;
+    }
+    .stage-node.locked {
+        filter: grayscale(1);
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .node-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #222;
+        border: 3px solid #555;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        transition: 0.3s;
+    }
+
+    .current .node-icon {
+        border-color: var(--gold);
+        box-shadow: 0 0 30px var(--gold);
+        transform: scale(1.1);
+    }
+    .completed .node-icon {
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.2);
+    }
+
+    .stage-info {
+        background: rgba(0, 0, 0, 0.8);
+        padding: 5px 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 120px;
+        transition: 0.3s;
+    }
+    .stage-name {
+        font-family: "Rajdhani";
+        font-weight: 700;
+        color: white;
+        font-size: 1rem;
+    }
+    .stage-reward {
+        font-size: 0.8rem;
+        color: var(--gold);
+    }
+
+    .pulse-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid var(--gold);
+        animation: pulseRing 2s infinite;
+        pointer-events: none;
+    }
+    @keyframes pulseRing {
+        0% {
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+        }
+        100% {
+            width: 200%;
+            height: 200%;
+            opacity: 0;
+        }
+    }
+
+    .stars {
+        position: absolute;
+        top: -15px;
+        font-size: 0.8rem;
+    }
+
+    /* AVATAR JOUEUR */
+    .player-avatar {
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 50%;
+        border: 2px solid var(--gold);
+        box-shadow: 0 0 15px var(--gold);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        z-index: 20;
+        animation: float 2s ease-in-out infinite;
+    }
+    .player-avatar::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid var(--gold);
+    }
+
+    @keyframes float {
+        0%,
+        100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        50% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+    }
+</style>

@@ -1,4 +1,4 @@
-import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE, QUEST_DATABASE } from '../data/fitquest.js';
+import { CARDS_DATABASE, BOSSES_DATA, CARD_TYPES, RARITY_CONFIG, WEEKLY_SCHEDULE, QUEST_DATABASE, WORLD_MAP } from '../data/fitquest.js';
 import { getSave, saveGame, getGlobalStats } from './store.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 
@@ -48,9 +48,6 @@ export class GameSession {
         console.log(`📅 Programme du jour : ${schedule.name} (${schedule.desc})`);
     }
 
-    // ... (Méthodes bindModalEvents, upgradeCard, ascendCard... restent identiques)
-    // JE GARDE LA STRUCTURE POUR NE PAS CASSER LE RESTE
-    
     bindModalEvents() {
         const btnComplete = document.getElementById('btnComplete');
         const btnCancel = document.getElementById('btnCancel');
@@ -98,8 +95,6 @@ export class GameSession {
 
     // --- CRÉATION CARTE (HOLO) ---
     createCardDOM(cardData, isCollection = true) {
-        // ... Code de création identique à la version précédente ...
-        // Je réutilise le code exact pour ne pas perdre l'effet holo
         const lvl = this.state.cardLevels[cardData.id] || 1;
         const rarity = this.state.cardRarity[cardData.id] || 'common';
         const typeInfo = CARD_TYPES[cardData.type];
@@ -170,9 +165,7 @@ export class GameSession {
         return el;
     }
 
-    // ... (openTraining, startTimer, formatTime, closeModal identiques) ...
     openTraining(card, dmg, cost) {
-        // MODIFICATION : On stocke 'cost' (valeur reps/temps) dans activeCard pour l'historique
         this.activeCard = { ...card, finalDmg: dmg, finalCost: cost };
         
         const modal = document.getElementById('trainingModal');
@@ -199,26 +192,23 @@ export class GameSession {
         modal.classList.add('active');
     }
 
-// --- NOUVELLE FONCTION POUR METTRE A JOUR LES QUÊTES ---
     updateQuests(card, calories, goldEarned) {
         if (!this.state.dailyQuests || !this.state.dailyQuests.quests) return;
 
         let hasUpdate = false;
         
         this.state.dailyQuests.quests.forEach(userQuest => {
-            if (userQuest.claimed) return; // Déjà fini
+            if (userQuest.claimed) return; 
 
-            // Récupérer la définition statique de la quête
             const questDef = QUEST_DATABASE.find(q => q.id === userQuest.id);
             if (!questDef) return;
 
-            // Logique de progression selon le type
             if (questDef.type === 'count_type' && questDef.filter === card.type) {
                 userQuest.progress += 1;
                 hasUpdate = true;
             }
             else if (questDef.type === 'reps' && card.unit === 'Reps') {
-                userQuest.progress += card.finalCost; // Ajoute le nombre de reps
+                userQuest.progress += card.finalCost; 
                 hasUpdate = true;
             }
             else if (questDef.type === 'calories') {
@@ -234,7 +224,6 @@ export class GameSession {
                 hasUpdate = true;
             }
 
-            // Cap au max
             if (userQuest.progress > questDef.target) userQuest.progress = questDef.target;
         });
 
@@ -281,12 +270,10 @@ export class GameSession {
         let durationMinutes = (this.activeCard.unit === 'Sec') ? this.activeCard.finalCost / 60 : (this.activeCard.finalCost * 3) / 60;
         const calories = Math.round((met * 3.5 * weight) / 200 * durationMinutes);
 
-        // Historique
         if (!this.state.history) this.state.history = [];
         this.state.history.unshift({ date: Date.now(), name: this.activeCard.name, value: this.activeCard.finalCost, unit: this.activeCard.unit, xp: 50, calories: calories });
         if (this.state.history.length > 50) this.state.history.pop();
 
-        // NOUVEAU : Mise à jour des quêtes
         this.updateQuests(this.activeCard, calories, 20);
 
         const bossContainer = document.getElementById('bossContainer');
@@ -299,17 +286,38 @@ export class GameSession {
         this.checkAchievements();
 
         if(this.bossHp <= 0) {
-            this.state.level++;
-            saveGame(this.state);
-            alert("BOSS VAINCU ! NIVEAU SUIVANT !");
-            window.location.reload();
+            // VICTOIRE
+            const urlParams = new URLSearchParams(window.location.search);
+            const stageId = parseInt(urlParams.get('stage'));
+
+            if (stageId) {
+                // Mode Histoire
+                const stage = WORLD_MAP.find(s => s.id === stageId);
+                const reward = stage ? stage.goldReward : 50;
+                
+                this.state.gold += reward;
+                
+                // Unlock next stage
+                if (this.state.maxStage <= stageId) {
+                    this.state.maxStage = stageId + 1;
+                }
+                
+                saveGame(this.state);
+                alert(`VICTOIRE ! +${reward} OR ! Stage suivant débloqué !`);
+                window.location.href = '/map';
+            } else {
+                // Mode Arcade
+                this.state.level++;
+                saveGame(this.state);
+                alert("BOSS VAINCU ! NIVEAU SUIVANT !");
+                window.location.reload();
+            }
         } else {
             this.updateUI();
             this.dealHand();
         }
         this.closeModal();
     }
-
 
     startTimer(seconds, display, btn) {
         let left = seconds;
@@ -327,7 +335,9 @@ export class GameSession {
             }
         }, 1000);
     }
+
     formatTime(s) { const m = Math.floor(s/60); const sec = s%60; return `${m}:${sec < 10 ? '0'+sec : sec}`; }
+
     closeModal() {
         const modal = document.getElementById('trainingModal');
         if(modal) modal.classList.remove('active');
@@ -339,78 +349,78 @@ export class GameSession {
         const bossEl = document.getElementById('bossName');
         if(!bossEl) return;
         
-        // SÉCURITÉ 1 : On force le niveau à 1 s'il est invalide (0, null, undefined)
-        let lvl = this.state.level;
-        if (!lvl || lvl < 1) lvl = 1; 
+        // Récupérer le stage depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const stageId = parseInt(urlParams.get('stage'));
+        
+        let boss;
+        let hpMult = 1;
 
-        // SÉCURITÉ 2 : Fallback si l'index dépasse le tableau
-        const bossIndex = (lvl - 1) % BOSSES_DATA.length;
-        const boss = BOSSES_DATA[bossIndex] || BOSSES_DATA[0]; 
-
-        // SÉCURITÉ 3 : Si malgré tout boss est vide (impossible normalement), on return
-        if (!boss) {
-            console.error("Erreur critique: Données boss introuvables");
-            return;
+        if (stageId) {
+            // MODE HISTOIRE
+            const stage = WORLD_MAP.find(s => s.id === stageId);
+            if (stage) {
+                boss = BOSSES_DATA[stage.bossIndex];
+                // HP augmente avec le stage
+                hpMult = boss.hpMultiplier + (stageId * 0.2);
+                console.log(`⚔️ Mode Histoire : Stage ${stageId} vs ${boss.name}`);
+            }
         }
 
-        this.maxBossHp = Math.floor((300 + (lvl * 50)) * boss.hpMultiplier);
+        // Fallback Mode Arcade (si pas de stage ou stage invalide)
+        if (!boss) {
+            let lvl = this.state.level;
+            if (!lvl || lvl < 1) lvl = 1; 
+            const bossIndex = (lvl - 1) % BOSSES_DATA.length;
+            boss = BOSSES_DATA[bossIndex] || BOSSES_DATA[0];
+            hpMult = boss.hpMultiplier + (lvl * 0.1);
+        }
+
+        if (!boss) return;
+
+        this.maxBossHp = Math.floor(300 * hpMult);
         this.bossHp = this.maxBossHp;
         bossEl.innerText = boss.name;
         
         const img = document.getElementById('bossImage');
-        // if(img) img.src = `https://images.unsplash.com/photo-1620570623421-26c94843d920?w=500&q=80`;
         if(img) img.src = `${boss.artQuery || 'dark'}`;
     }
 
-    // --- DEAL HAND INTELLIGENTE (GAME MASTER) ---
     dealHand() {
         const hand = document.getElementById('handArea');
         if(!hand) return;
         hand.innerHTML = '';
 
-        // 1. Récupérer la config
         const today = new Date().getDay();
         const dailySchedule = WEEKLY_SCHEDULE[today];
         const activeDeckIds = this.state.activeDeck || [];
         
-        // Obtenir les objets cartes complets du deck joueur
         let playerDeck = CARDS_DATABASE.filter(c => activeDeckIds.includes(c.id));
         
-        // Fallback si deck vide
         if(playerDeck.length === 0) {
             playerDeck = CARDS_DATABASE.filter(c => c.unlockLevel === 1);
         }
 
-        // 2. Préparer la main
         const handCards = [];
-
-        // 3. Essayer de trouver une carte "Focus du Jour"
+        
         const focusCards = playerDeck.filter(c => dailySchedule.focus.includes(c.type));
         
         if (focusCards.length > 0) {
-            // On prend 1 carte du focus au hasard
             const randomFocus = focusCards[Math.floor(Math.random() * focusCards.length)];
             handCards.push(randomFocus);
         }
 
-        // 4. Compléter la main avec des cartes aléatoires (sans doublons)
-        // On essaye de remplir jusqu'à 3 cartes
         let attempts = 0;
         while (handCards.length < 3 && attempts < 20) {
             const randomCard = playerDeck[Math.floor(Math.random() * playerDeck.length)];
-            
-            // Vérifier si pas déjà dans la main
             const alreadyInHand = handCards.some(c => c.id === randomCard.id);
-            
             if (!alreadyInHand) {
                 handCards.push(randomCard);
             }
             attempts++;
         }
 
-        // 5. Afficher
         handCards.forEach(card => {
-            // On crée la carte en mode "JEU" (false)
             hand.appendChild(this.createCardDOM(card, false));
         });
     }

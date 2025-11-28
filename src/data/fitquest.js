@@ -34,6 +34,14 @@ export const BOSSES_DATA = [
     { name: "Le Roi du Canapé", hpMultiplier: 2.0, artQuery: "/boss/king.webp" }
 ];
 
+export const WORLD_MAP = [
+    { id: 1, name: "Le Salon", bossIndex: 0, goldReward: 50, desc: "Le début de la fin de la sédentarité." },
+    { id: 2, name: "La Cuisine", bossIndex: 3, goldReward: 75, desc: "Attention aux tentations sucrées." },
+    { id: 3, name: "Le Bureau", bossIndex: 2, goldReward: 100, desc: "Le stress s'accumule ici." },
+    { id: 4, name: "La Salle de Bain", bossIndex: 1, goldReward: 150, desc: "Miroir, mon beau miroir..." },
+    { id: 5, name: "Le Toit", bossIndex: 4, goldReward: 300, desc: "Le combat final contre le Roi." }
+];
+
 // BASE DE DONNÉES DES QUÊTES
 export const QUEST_DATABASE = [
     // Quêtes de Type
