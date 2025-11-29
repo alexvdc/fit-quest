@@ -28,19 +28,28 @@ export const WEEKLY_SCHEDULE = [
 
 export const BOSSES_DATA = [
     { name: "Golem de Sédentarité", hpMultiplier: 1, artQuery: "/boss/golem.webp" },
-    { name: "L'Hydre du Stress", hpMultiplier: 1.2, artQuery: "/boss/hydra.webp" },
+    { name: "L'Hydre du Stress", hpMultiplier: 1.1, artQuery: "/boss/hydra.webp" },
     { name: "Spectre de la Flemme", hpMultiplier: 0.9, artQuery: "/boss/spectre.webp" },
     { name: "Titan de la Malbouffe", hpMultiplier: 1.5, artQuery: "/boss/titan.webp" },
-    { name: "Le Roi du Canapé", hpMultiplier: 2.0, artQuery: "/boss/king.webp" }
+    { name: "Le Roi du Canapé", hpMultiplier: 1.2, artQuery: "/boss/king.webp" },
+    { name: "Le Sorcier du Scroll Infini", hpMultiplier: 1.1, artQuery: "/boss/smartphone.webp" },
+    { name: "La Succube Sucrée", hpMultiplier: 1.4, artQuery: "/boss/succube.webp" },
+    { name: "L'Ombre du 'On Verra Demain'", hpMultiplier: 1.3, artQuery: "/boss/shadow.webp" },
+    { name: "Le Zombie des Nuits Courtes", hpMultiplier: 0.95, artQuery: "/boss/zombie.webp" }
 ];
 
 export const WORLD_MAP = [
     { id: 1, name: "Le Salon", bossIndex: 0, goldReward: 50, desc: "Le début de la fin de la sédentarité." },
-    { id: 2, name: "La Cuisine", bossIndex: 3, goldReward: 75, desc: "Attention aux tentations sucrées." },
-    { id: 3, name: "Le Bureau", bossIndex: 2, goldReward: 100, desc: "Le stress s'accumule ici." },
-    { id: 4, name: "La Salle de Bain", bossIndex: 1, goldReward: 150, desc: "Miroir, mon beau miroir..." },
-    { id: 5, name: "Le Toit", bossIndex: 4, goldReward: 300, desc: "Le combat final contre le Roi." }
+    { id: 2, name: "La Salle de Réunion", bossIndex: 1, goldReward: 80, desc: "L’endroit où naissent deadlines et stress." },
+    { id: 3, name: "Le Couloir des Procrastinateurs", bossIndex: 2, goldReward: 110, desc: "Un lieu où la motivation disparaît dans le néant." },
+    { id: 4, name: "La Cuisine", bossIndex: 3, goldReward: 150, desc: "Ici, les tentations sont plus dangereuses qu’un boss final." },
+    { id: 5, name: "Le Trône du Confort", bossIndex: 4, goldReward: 200, desc: "Là où le Roi du Canapé règne en maître absolu." },
+    { id: 6, name: "Le Temple du Smartphone", bossIndex: 5, goldReward: 230, desc: "Un sanctuaire où l’on perd la notion du temps avec un simple scroll." },
+    { id: 7, name: "La Confiserie Maudite", bossIndex: 6, goldReward: 260, desc: "Un royaume sucré où chaque douceur cache un piège." },
+    { id: 8, name: "La Chambre des 'On Verra Demain'", bossIndex: 7, goldReward: 300, desc: "Le repaire ultime de la procrastination sournoise." },
+    { id: 9, name: "Les Couloirs de la Nuit", bossIndex: 8, goldReward: 350, desc: "Un lieu où le sommeil manque et les zombies rôdent." }
 ];
+
 
 export const SHOP_ITEMS = [
     // --- DOS DE CARTES ---
@@ -131,13 +140,15 @@ export const QUEST_DATABASE = [
 // Ajout des METs (Intensité métabolique pour le calcul des calories)
 export const CARDS_DATABASE = [
     // --- NIVEAU 1 ---
-    { id: 'squats', name: 'Squats', type: 'STR', unit: 'Reps', desc: 'Jambes en béton.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 1, tutorial: "Pieds largeur épaules, dos droit, fesses en arrière comme pour s'asseoir.", met: 5.0 },
+    { id: 'squats', name: 'Squats', type: 'STR', unit: 'Reps', desc: 'Jambes en béton.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 1, tutorial: "Poids sur les talons, genoux vers l'extérieur. Ne cambrez pas le dos.", met: 5.0 },
     { id: 'jacks', name: 'Jumping Jacks', type: 'AGI', unit: 'Reps', desc: 'Cardio fun.', baseDmg: 25, dmgScale: 5, baseCost: 20, costScale: 5, unlockLevel: 1, tutorial: "Ecartez bras et jambes en sautant.", met: 8.0 },
     { id: 'plank', name: 'Planche', type: 'DEF', unit: 'Sec', duration: true, desc: 'Gainage total.', baseDmg: 40, dmgScale: 15, baseCost: 20, costScale: 10, unlockLevel: 1, tutorial: "Avant-bras au sol, corps droit de la tête aux talons, fesses ni hautes ni basses.", met: 3.5 },
     { id: 'knee_pushups', name: 'Pompes Genoux', type: 'STR', unit: 'Reps', desc: 'Haut du corps.', baseDmg: 30, dmgScale: 8, baseCost: 10, costScale: 2, unlockLevel: 1, tutorial: "Sur les genoux, poitrine au sol.", met: 3.8 },
+    { id: 'scapular_pushups', name: 'Pompes Scapula', type: 'DEF', unit: 'Reps', desc: 'Mobilité épaules.', baseDmg: 30, dmgScale: 8, baseCost: 10, costScale: 3, unlockLevel: 3, tutorial: "Bras tendus en position pompe, serrez uniquement les omoplates puis écartez-les.", met: 3.0 },
 
     // --- NIVEAU 2 ---
     { id: 'lunges', name: 'Fentes', type: 'STR', unit: 'Reps', desc: 'Unilatéral.', baseDmg: 45, dmgScale: 12, baseCost: 10, costScale: 2, unlockLevel: 2, tutorial: "Un grand pas en avant, descendez.", met: 5.5 },
+    { id: 'reverse_lunges', name: 'Fentes Arrière', type: 'STR', unit: 'Reps', desc: 'Mieux pour genoux.', baseDmg: 45, dmgScale: 12, baseCost: 10, costScale: 2, unlockLevel: 2, tutorial: "Faites un pas vers l'arrière et descendez le genou vers le sol. Dos droit.", met: 5.5 },
     { id: 'high_knees', name: 'Montées Genoux', type: 'AGI', unit: 'Sec', duration: true, desc: 'Sprint sur place.', baseDmg: 35, dmgScale: 10, baseCost: 20, costScale: 5, unlockLevel: 2, tutorial: "Genoux hauteur bassin, rythme rapide.", met: 8.0 },
     { id: 'glute_bridge', name: 'Pont Fessier', type: 'DEF', unit: 'Reps', desc: 'Chaîne postérieure.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 2, tutorial: "Dos au sol, levez le bassin.", met: 3.0 },
     { id: 'calf_raises', name: 'Mollets Debout', type: 'STR', unit: 'Reps', desc: 'Jambes complètes.', baseDmg: 30, dmgScale: 8, baseCost: 20, costScale: 5, unlockLevel: 2, tutorial: "Debout, montez sur la pointe des pieds, redescendez lentement.", met: 3.5 },
@@ -150,6 +161,7 @@ export const CARDS_DATABASE = [
     { id: 'tricep_dips', name: 'Dips Triceps', type: 'STR', unit: 'Reps', desc: 'Arrière des bras.', baseDmg: 45, dmgScale: 12, baseCost: 10, costScale: 2, unlockLevel: 3, tutorial: "Mains sur chaise derrière vous, pliez les coudes à 90°.", met: 4.0 },
     { id: 'lateral_hops', name: 'Sauts Latéraux', type: 'AGI', unit: 'Reps', desc: 'Agilité.', baseDmg: 40, dmgScale: 10, baseCost: 25, costScale: 5, unlockLevel: 3, tutorial: "Sautez d'un pied à l'autre latéralement, imaginez une ligne au sol.", met: 7.0 },
     { id: 'bird_dog', name: 'Bird Dog', type: 'DEF', unit: 'Reps', desc: 'Stabilité.', baseDmg: 40, dmgScale: 10, baseCost: 12, costScale: 3, unlockLevel: 3, tutorial: "À 4 pattes, tendez bras opposé + jambe opposée simultanément.", met: 3.2 },
+    { id: 'shoulder_taps', name: 'Tap Épaules', type: 'DEF', unit: 'Reps', desc: 'Gainage dynamique.', baseDmg: 45, dmgScale: 12, baseCost: 15, costScale: 5, unlockLevel: 4, tutorial: "En position planche, touchez votre épaule opposée sans bouger le bassin.", met: 4.5 },
 
     // --- NIVEAU 4 ---
     { id: 'bicep_curl', name: 'Curl Biceps', type: 'STR', unit: 'Reps', desc: 'Avec poids/eau.', baseDmg: 40, dmgScale: 10, baseCost: 12, costScale: 2, unlockLevel: 4, tutorial: "Contrôlez la montée et la descente.", met: 3.5 },
@@ -159,7 +171,7 @@ export const CARDS_DATABASE = [
     { id: 'reverse_plank', name: 'Planche Inversée', type: 'DEF', unit: 'Sec', duration: true, desc: 'Dos et fessiers.', baseDmg: 50, dmgScale: 12, baseCost: 20, costScale: 5, unlockLevel: 4, tutorial: "Assis, mains derrière, levez le bassin pour aligner le corps.", met: 3.8 },
 
     // --- NIVEAU 5+ ---
-    { id: 'burpees', name: 'Burpees', type: 'AGI', unit: 'Reps', desc: 'Explosif.', baseDmg: 80, dmgScale: 25, baseCost: 5, costScale: 2, unlockLevel: 5, tutorial: "Sol > Pompe > Saut. Courage !", met: 10.0 },
+    { id: 'burpees', name: 'Burpees', type: 'AGI', unit: 'Reps', desc: 'Explosif.', baseDmg: 80, dmgScale: 25, baseCost: 5, costScale: 2, unlockLevel: 5, tutorial: "Squat, planche, pompe (optionnelle), ramenez pieds à plat, saut. Gardez le dos gainé.", met: 10.0 },
     { id: 'side_plank', name: 'Gainage Latéral', type: 'DEF', unit: 'Sec', duration: true, desc: 'Obliques.', baseDmg: 50, dmgScale: 12, baseCost: 20, costScale: 5, unlockLevel: 5, tutorial: "En appui sur un avant-bras.", met: 3.5 },
     { id: 'pike_pushups', name: 'Pompes Pike', type: 'STR', unit: 'Reps', desc: 'Épaules focus.', baseDmg: 55, dmgScale: 15, baseCost: 8, costScale: 2, unlockLevel: 5, tutorial: "Mains au sol, fesses en l'air en V inversé, descendre avec les coudes.", met: 4.2 },
     { id: 'hollow_hold', name: 'Hollow Hold', type: 'DEF', unit: 'Sec', duration: true, desc: 'Abdos profonds.', baseDmg: 55, dmgScale: 15, baseCost: 15, costScale: 5, unlockLevel: 5, tutorial: "Au sol, bras tendus au-dessus tête, jambes levées, creusez le dos.", met: 4.0 },
