@@ -5,9 +5,6 @@ import Layout from "../layouts/Layout.astro";
 <Layout title="Statistiques">
     <div class="stats-container">
         <header class="header">
-            <a href="/" class="btn-back"
-                ><i data-lucide="arrow-left"></i> Menu</a
-            >
             <div class="header-title">STATISTIQUES</div>
             <div class="spacer"></div>
         </header>
@@ -102,6 +99,7 @@ import Layout from "../layouts/Layout.astro";
         if (window["lucide"]) window["lucide"].createIcons();
     });
 
+    // @ts-ignore
     function animateValue(id, end) {
         const obj = document.getElementById(id);
         if (!obj) return;
@@ -124,6 +122,7 @@ import Layout from "../layouts/Layout.astro";
         window.requestAnimationFrame(step);
     }
 
+    // @ts-ignore
     function calculateStreak(history) {
         if (history.length === 0) return 0;
 
@@ -160,6 +159,7 @@ import Layout from "../layouts/Layout.astro";
         return streak;
     }
 
+    // @ts-ignore
     function createCaloriesChart(history) {
         const canvas = document.getElementById("caloriesChart");
         if (!canvas) return;
@@ -186,6 +186,7 @@ import Layout from "../layouts/Layout.astro";
         }
 
         // Dessiner le graphique en barres
+        // @ts-ignore
         const ctx = canvas.getContext("2d");
         // Handle high DPI displays
         const dpr = window.devicePixelRatio || 1;
@@ -254,6 +255,7 @@ import Layout from "../layouts/Layout.astro";
         });
     }
 
+    // @ts-ignore
     function displayTopExercises(history) {
         const container = document.getElementById("topExercises");
         if (!container) return;
@@ -315,6 +317,7 @@ import Layout from "../layouts/Layout.astro";
             .join("");
     }
 
+    // @ts-ignore
     function displayHistory(history) {
         const container = document.getElementById("historyList");
         if (!container) return;

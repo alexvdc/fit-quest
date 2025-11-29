@@ -1,0 +1,143 @@
+<nav class="navbar">
+    <a href="/" class="nav-item" id="nav-home">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Accueil</span>
+    </a>
+    <a href="/map" class="nav-item" id="nav-map">
+        <i data-lucide="map"></i>
+        <span>Aventure</span>
+    </a>
+    <a href="/shop" class="nav-item" id="nav-shop">
+        <i data-lucide="shopping-bag"></i>
+        <span>Boutique</span>
+    </a>
+    <a href="/stats" class="nav-item" id="nav-stats">
+        <i data-lucide="bar-chart-2"></i>
+        <span>Stats</span>
+    </a>
+    <a href="/profile" class="nav-item" id="nav-profile">
+        <i data-lucide="user"></i>
+        <span>Profil</span>
+    </a>
+</nav>
+
+<script>
+    // Highlight active link
+    const path = window.location.pathname;
+    const links = {
+        "/": "nav-home",
+        "/map": "nav-map",
+        "/shop": "nav-shop",
+        "/stats": "nav-stats",
+        "/profile": "nav-profile",
+    };
+
+    // Simple logic to find active link (can be improved for sub-paths)
+    let activeId = links["/"];
+    for (const [p, id] of Object.entries(links)) {
+        if (path === p || (p !== "/" && path.startsWith(p))) {
+            activeId = id;
+        }
+    }
+
+    const activeEl = document.getElementById(activeId);
+    if (activeEl) activeEl.classList.add("active");
+</script>
+
+<style>
+    .navbar {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 20, 25, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 10px 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 1000;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        width: 90%;
+        max-width: 500px;
+        justify-content: space-between;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #94a3b8;
+        font-size: 0.75rem;
+        gap: 4px;
+        padding: 8px 12px;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        flex: 1;
+    }
+
+    .nav-item i {
+        width: 24px;
+        height: 24px;
+        transition: transform 0.3s;
+    }
+
+    .nav-item:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active {
+        color: var(--accent);
+        background: rgba(139, 92, 246, 0.15);
+    }
+
+    .nav-item.active i {
+        transform: translateY(-2px);
+    }
+
+    .nav-item span {
+        font-weight: 600;
+        opacity: 0.8;
+    }
+
+    .nav-item.active span {
+        opacity: 1;
+    }
+
+    /* Indicateur lumineux pour l'actif */
+    .nav-item.active::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        width: 20px;
+        height: 20px;
+        background: var(--accent);
+        filter: blur(15px);
+        opacity: 0.4;
+        border-radius: 50%;
+    }
+
+    @media (max-width: 400px) {
+        .navbar {
+            padding: 10px 10px;
+            bottom: 10px;
+            width: 95%;
+        }
+        .nav-item {
+            padding: 6px 8px;
+        }
+        .nav-item span {
+            font-size: 0.7rem;
+            display: none; /* Hide text on very small screens if needed, or keep it */
+        }
+        .nav-item.active span {
+            display: block;
+        }
+    }
+</style>
