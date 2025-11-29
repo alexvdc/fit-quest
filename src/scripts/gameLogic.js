@@ -177,12 +177,30 @@ export class GameSession {
         if(instruc) instruc.innerText = `${cost} ${card.unit}`;
 
         if (card.duration) {
+            // Exercise avec durée : afficher le timer et bouton COMMENCER
             if(timerBox) timerBox.classList.remove('hidden');
-            if(btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.innerText = "PRÉPAREZ-VOUS..."; }
-            if(timerDisplay && btn) this.startTimer(cost, timerDisplay, btn);
+            if(timerDisplay) timerDisplay.innerText = this.formatTime(cost);
+            if(btn) { 
+                btn.disabled = false; 
+                btn.style.opacity = '1'; 
+                btn.innerText = "▶ COMMENCER"; 
+                btn.onclick = () => {
+                    // Démarrer le timer quand l'utilisateur clique
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.innerText = "EN COURS...";
+                    this.startTimer(cost, timerDisplay, btn);
+                };
+            }
         } else {
+            // Exercise sans durée (reps) : bouton classique
             if(timerBox) timerBox.classList.add('hidden');
-            if(btn) { btn.disabled = false; btn.style.opacity = '1'; btn.innerText = "J'AI FINI MES REPS"; }
+            if(btn) { 
+                btn.disabled = false; 
+                btn.style.opacity = '1'; 
+                btn.innerText = "J'AI FINI MES REPS"; 
+                btn.onclick = () => this.completeTraining();
+            }
         }
         modal.classList.add('active');
     }
@@ -281,7 +299,34 @@ export class GameSession {
             const calories = Math.round((met * 3.5 * weight) / 200 * durationMinutes);
 
             if (!this.state.history) this.state.history = [];
-            this.state.history.unshift({ date: Date.now(), name: this.activeCard.name, value: this.activeCard.finalCost, unit: this.activeCard.unit, xp: 50, calories: calories });
+            
+            // Vérifier si un exercice identique a déjà été fait AUJOURD'HUI
+            const now = Date.now();
+            const today = new Date(now).setHours(0, 0, 0, 0);
+            
+            const existingEntry = this.state.history.find(entry => {
+                const entryDay = new Date(entry.date).setHours(0, 0, 0, 0);
+                return entryDay === today && entry.name === this.activeCard.name && entry.unit === this.activeCard.unit;
+            });
+            
+            if (existingEntry) {
+                // Additionner les valeurs à l'entrée existante
+                existingEntry.value += this.activeCard.finalCost;
+                existingEntry.xp += 50;
+                existingEntry.calories += calories;
+                existingEntry.date = now; // Mettre à jour la date pour la dernière occurrence
+            } else {
+                // Créer une nouvelle entrée
+                this.state.history.unshift({ 
+                    date: now, 
+                    name: this.activeCard.name, 
+                    value: this.activeCard.finalCost, 
+                    unit: this.activeCard.unit, 
+                    xp: 50, 
+                    calories: calories 
+                });
+            }
+            
             if (this.state.history.length > 50) this.state.history.pop();
 
             this.updateQuests(this.activeCard, calories, 20);
@@ -339,6 +384,7 @@ export class GameSession {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.innerText = "VALIDER";
+                btn.onclick = () => this.completeTraining();
                 if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
             }
         }, 1000);

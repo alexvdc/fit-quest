@@ -131,30 +131,44 @@ export const QUEST_DATABASE = [
 // Ajout des METs (Intensité métabolique pour le calcul des calories)
 export const CARDS_DATABASE = [
     // --- NIVEAU 1 ---
-    { id: 'squats', name: 'Squats', type: 'STR', unit: 'Reps', desc: 'Jambes en béton.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 1, tutorial: "Dos droit, fesses en arrière.", met: 5.0 },
+    { id: 'squats', name: 'Squats', type: 'STR', unit: 'Reps', desc: 'Jambes en béton.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 1, tutorial: "Pieds largeur épaules, dos droit, fesses en arrière comme pour s'asseoir.", met: 5.0 },
     { id: 'jacks', name: 'Jumping Jacks', type: 'AGI', unit: 'Reps', desc: 'Cardio fun.', baseDmg: 25, dmgScale: 5, baseCost: 20, costScale: 5, unlockLevel: 1, tutorial: "Ecartez bras et jambes en sautant.", met: 8.0 },
-    { id: 'plank', name: 'Planche', type: 'DEF', unit: 'Sec', duration: true, desc: 'Gainage total.', baseDmg: 40, dmgScale: 15, baseCost: 20, costScale: 10, unlockLevel: 1, tutorial: "Sur les coudes, corps aligné.", met: 3.5 },
+    { id: 'plank', name: 'Planche', type: 'DEF', unit: 'Sec', duration: true, desc: 'Gainage total.', baseDmg: 40, dmgScale: 15, baseCost: 20, costScale: 10, unlockLevel: 1, tutorial: "Avant-bras au sol, corps droit de la tête aux talons, fesses ni hautes ni basses.", met: 3.5 },
     { id: 'knee_pushups', name: 'Pompes Genoux', type: 'STR', unit: 'Reps', desc: 'Haut du corps.', baseDmg: 30, dmgScale: 8, baseCost: 10, costScale: 2, unlockLevel: 1, tutorial: "Sur les genoux, poitrine au sol.", met: 3.8 },
 
     // --- NIVEAU 2 ---
     { id: 'lunges', name: 'Fentes', type: 'STR', unit: 'Reps', desc: 'Unilatéral.', baseDmg: 45, dmgScale: 12, baseCost: 10, costScale: 2, unlockLevel: 2, tutorial: "Un grand pas en avant, descendez.", met: 5.5 },
     { id: 'high_knees', name: 'Montées Genoux', type: 'AGI', unit: 'Sec', duration: true, desc: 'Sprint sur place.', baseDmg: 35, dmgScale: 10, baseCost: 20, costScale: 5, unlockLevel: 2, tutorial: "Genoux hauteur bassin, rythme rapide.", met: 8.0 },
     { id: 'glute_bridge', name: 'Pont Fessier', type: 'DEF', unit: 'Reps', desc: 'Chaîne postérieure.', baseDmg: 35, dmgScale: 10, baseCost: 15, costScale: 5, unlockLevel: 2, tutorial: "Dos au sol, levez le bassin.", met: 3.0 },
+    { id: 'calf_raises', name: 'Mollets Debout', type: 'STR', unit: 'Reps', desc: 'Jambes complètes.', baseDmg: 30, dmgScale: 8, baseCost: 20, costScale: 5, unlockLevel: 2, tutorial: "Debout, montez sur la pointe des pieds, redescendez lentement.", met: 3.5 },
+    { id: 'butt_kicks', name: 'Talons-Fesses', type: 'AGI', unit: 'Sec', duration: true, desc: 'Cardio jambes.', baseDmg: 35, dmgScale: 10, baseCost: 20, costScale: 5, unlockLevel: 2, tutorial: "Courir sur place en ramenant les talons aux fesses.", met: 7.5 },
 
     // --- NIVEAU 3 ---
-    { id: 'pushups', name: 'Pompes', type: 'STR', unit: 'Reps', desc: 'Classique.', baseDmg: 50, dmgScale: 15, baseCost: 10, costScale: 2, unlockLevel: 3, tutorial: "Corps gainé, poitrine frôle le sol.", met: 4.0 },
-    { id: 'wall_sit', name: 'La Chaise', type: 'DEF', unit: 'Sec', duration: true, desc: 'Isométrie cuisses.', baseDmg: 45, dmgScale: 12, baseCost: 30, costScale: 10, unlockLevel: 3, tutorial: "Dos au mur, cuisses parallèles au sol.", met: 2.5 },
+    { id: 'pushups', name: 'Pompes', type: 'STR', unit: 'Reps', desc: 'Classique.', baseDmg: 50, dmgScale: 15, baseCost: 10, costScale: 2, unlockLevel: 3, tutorial: "Corps aligné, coudes le long du corps, descendre jusqu'à 90°.", met: 4.0 },
+    { id: 'wall_sit', name: 'La Chaise', type: 'DEF', unit: 'Sec', duration: true, desc: 'Isométrie cuisses.', baseDmg: 45, dmgScale: 12, baseCost: 30, costScale: 10, unlockLevel: 3, tutorial: "Dos collé au mur, genoux à 90°, cuisses parallèles au sol.", met: 2.5 },
     { id: 'skaters', name: 'Patineurs', type: 'AGI', unit: 'Reps', desc: 'Agilité latérale.', baseDmg: 40, dmgScale: 10, baseCost: 20, costScale: 5, unlockLevel: 3, tutorial: "Sautez d'un pied sur l'autre latéralement.", met: 7.0 },
+    { id: 'tricep_dips', name: 'Dips Triceps', type: 'STR', unit: 'Reps', desc: 'Arrière des bras.', baseDmg: 45, dmgScale: 12, baseCost: 10, costScale: 2, unlockLevel: 3, tutorial: "Mains sur chaise derrière vous, pliez les coudes à 90°.", met: 4.0 },
+    { id: 'lateral_hops', name: 'Sauts Latéraux', type: 'AGI', unit: 'Reps', desc: 'Agilité.', baseDmg: 40, dmgScale: 10, baseCost: 25, costScale: 5, unlockLevel: 3, tutorial: "Sautez d'un pied à l'autre latéralement, imaginez une ligne au sol.", met: 7.0 },
+    { id: 'bird_dog', name: 'Bird Dog', type: 'DEF', unit: 'Reps', desc: 'Stabilité.', baseDmg: 40, dmgScale: 10, baseCost: 12, costScale: 3, unlockLevel: 3, tutorial: "À 4 pattes, tendez bras opposé + jambe opposée simultanément.", met: 3.2 },
 
     // --- NIVEAU 4 ---
     { id: 'bicep_curl', name: 'Curl Biceps', type: 'STR', unit: 'Reps', desc: 'Avec poids/eau.', baseDmg: 40, dmgScale: 10, baseCost: 12, costScale: 2, unlockLevel: 4, tutorial: "Contrôlez la montée et la descente.", met: 3.5 },
     { id: 'shadow_box', name: 'Shadow Box', type: 'AGI', unit: 'Sec', duration: true, desc: 'Combat.', baseDmg: 40, dmgScale: 10, baseCost: 30, costScale: 15, unlockLevel: 4, tutorial: "Enchaînez les coups dans le vide.", met: 9.0 },
     { id: 'superman', name: 'Superman', type: 'DEF', unit: 'Sec', duration: true, desc: 'Lombaires.', baseDmg: 45, dmgScale: 10, baseCost: 20, costScale: 5, unlockLevel: 4, tutorial: "Au sol, levez bras et jambes tendus.", met: 3.0 },
+    { id: 'star_jumps', name: 'Sauts Étoile', type: 'AGI', unit: 'Reps', desc: 'Explosivité.', baseDmg: 45, dmgScale: 12, baseCost: 12, costScale: 3, unlockLevel: 4, tutorial: "Squat puis saut en écartant bras et jambes en étoile.", met: 8.5 },
+    { id: 'reverse_plank', name: 'Planche Inversée', type: 'DEF', unit: 'Sec', duration: true, desc: 'Dos et fessiers.', baseDmg: 50, dmgScale: 12, baseCost: 20, costScale: 5, unlockLevel: 4, tutorial: "Assis, mains derrière, levez le bassin pour aligner le corps.", met: 3.8 },
 
     // --- NIVEAU 5+ ---
     { id: 'burpees', name: 'Burpees', type: 'AGI', unit: 'Reps', desc: 'Explosif.', baseDmg: 80, dmgScale: 25, baseCost: 5, costScale: 2, unlockLevel: 5, tutorial: "Sol > Pompe > Saut. Courage !", met: 10.0 },
     { id: 'side_plank', name: 'Gainage Latéral', type: 'DEF', unit: 'Sec', duration: true, desc: 'Obliques.', baseDmg: 50, dmgScale: 12, baseCost: 20, costScale: 5, unlockLevel: 5, tutorial: "En appui sur un avant-bras.", met: 3.5 },
+    { id: 'pike_pushups', name: 'Pompes Pike', type: 'STR', unit: 'Reps', desc: 'Épaules focus.', baseDmg: 55, dmgScale: 15, baseCost: 8, costScale: 2, unlockLevel: 5, tutorial: "Mains au sol, fesses en l'air en V inversé, descendre avec les coudes.", met: 4.2 },
+    { id: 'hollow_hold', name: 'Hollow Hold', type: 'DEF', unit: 'Sec', duration: true, desc: 'Abdos profonds.', baseDmg: 55, dmgScale: 15, baseCost: 15, costScale: 5, unlockLevel: 5, tutorial: "Au sol, bras tendus au-dessus tête, jambes levées, creusez le dos.", met: 4.0 },
+    { id: 'plank_jacks', name: 'Planche Jacks', type: 'DEF', unit: 'Reps', desc: 'Gainage dynamique.', baseDmg: 50, dmgScale: 12, baseCost: 15, costScale: 5, unlockLevel: 5, tutorial: "Position planche, écartez et regroupez les jambes en sautant.", met: 5.0 },
+    
     { id: 'diamond_pushups', name: 'Pompes Diamant', type: 'STR', unit: 'Reps', desc: 'Triceps focus.', baseDmg: 60, dmgScale: 18, baseCost: 8, costScale: 2, unlockLevel: 6, tutorial: "Mains jointes sous la poitrine.", met: 4.5 },
     { id: 'mountain_climber', name: 'Mtn Climber', type: 'AGI', unit: 'Sec', duration: true, desc: 'Intensité.', baseDmg: 50, dmgScale: 12, baseCost: 20, costScale: 10, unlockLevel: 6, tutorial: "Position pompe, courir au sol.", met: 8.0 },
-    { id: 'jump_squats', name: 'Squats Sautés', type: 'STR', unit: 'Reps', desc: 'Puissance.', baseDmg: 55, dmgScale: 15, baseCost: 10, costScale: 5, unlockLevel: 7, tutorial: "Squat + extension explosive.", met: 7.5 }
+    
+    { id: 'jump_squats', name: 'Squats Sautés', type: 'STR', unit: 'Reps', desc: 'Puissance.', baseDmg: 55, dmgScale: 15, baseCost: 10, costScale: 5, unlockLevel: 7, tutorial: "Squat + extension explosive.", met: 7.5 },
+    
+    { id: 'pistol_squat', name: 'Pistol Squat', type: 'STR', unit: 'Reps', desc: 'Niveau expert.', baseDmg: 90, dmgScale: 30, baseCost: 5, costScale: 2, unlockLevel: 8, tutorial: "Squat sur une jambe, l'autre tendue devant. Utilisez un support si besoin.", met: 6.0 }
 ];
