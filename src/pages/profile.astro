@@ -90,6 +90,31 @@ import Layout from "../layouts/Layout.astro";
                 </div>
             </section>
 
+            <!-- SECTION 3.5 : GESTION SAUVEGARDE -->
+            <section class="save-management-section">
+                <h2 class="section-title">GESTION DE LA SAUVEGARDE</h2>
+                <p class="section-desc">
+                    Sauvegardez vos progrès ou restaurez une sauvegarde
+                    existante.
+                </p>
+                <div class="save-buttons">
+                    <button id="exportBtn" class="save-btn export-btn">
+                        <i data-lucide="download"></i>
+                        <span>Exporter</span>
+                    </button>
+                    <button id="importBtn" class="save-btn import-btn">
+                        <i data-lucide="upload"></i>
+                        <span>Importer</span>
+                    </button>
+                </div>
+                <input
+                    type="file"
+                    id="importFile"
+                    accept=".json"
+                    style="display: none;"
+                />
+            </section>
+
             <!-- SECTION 4 : GESTION DU DECK -->
             <section class="deck-section">
                 <div class="section-header">
@@ -367,6 +392,66 @@ import Layout from "../layouts/Layout.astro";
         }
         saveGame(state);
         renderDeck(state);
+    }
+
+    // Gestion Export / Import
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+
+    if (exportBtn) {
+        exportBtn.onclick = () => {
+            const state = getSave();
+            const dataStr = JSON.stringify(state, null, 2);
+            const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `fitquest-save-${new Date().toISOString().split("T")[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            alert("✅ Sauvegarde exportée avec succès !");
+        };
+    }
+
+    if (importBtn && importFile) {
+        importBtn.onclick = () => {
+            importFile.click();
+        };
+
+        importFile.onchange = (e) => {
+            // @ts-ignore
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    // @ts-ignore
+                    const imported = JSON.parse(event.target?.result);
+
+                    // Validation basique
+                    if (!imported || typeof imported !== "object") {
+                        throw new Error("Format invalide");
+                    }
+
+                    // Sauvegarder
+                    localStorage.setItem(
+                        "fitquest_save",
+                        JSON.stringify(imported),
+                    );
+
+                    alert("✅ Sauvegarde importée ! La page va se recharger.");
+                    window.location.reload();
+                } catch (error) {
+                    alert("❌ Erreur : fichier de sauvegarde invalide");
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        };
     }
 </script>
 
@@ -820,5 +905,50 @@ import Layout from "../layouts/Layout.astro";
     }
     input:checked + .slider:before {
         transform: translateX(24px);
+    }
+
+    /* SAVE MANAGEMENT */
+    .save-management-section {
+        margin-bottom: 30px;
+    }
+    .save-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .save-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px 20px;
+        border: 2px solid;
+        border-radius: 12px;
+        font-family: "Rajdhani";
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    .export-btn {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    .export-btn:hover {
+        background: rgba(139, 92, 246, 0.2);
+        transform: translateY(-2px);
+    }
+    .import-btn {
+        border-color: var(--success);
+        color: var(--success);
+    }
+    .import-btn:hover {
+        background: rgba(16, 185, 129, 0.2);
+        transform: translateY(-2px);
+    }
+    .save-btn i {
+        width: 20px;
+        height: 20px;
     }
 </style>
