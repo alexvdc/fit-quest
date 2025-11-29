@@ -25,7 +25,10 @@ body {
     overflow: hidden;
 }
 
-body:has(.stats-container) { overflow: auto; }
+body:has(.stats-container), 
+body:has(.shop-container) { 
+    overflow: auto; 
+}
 
 body::before {
     content: ''; position: absolute; inset: -50%;
