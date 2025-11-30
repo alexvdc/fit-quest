@@ -33,7 +33,7 @@ body {
 
 body:has(.stats-container), 
 body:has(.shop-container) { 
-    overflow: auto; 
+    overflow-y: auto; 
 }
 
 body::before {
