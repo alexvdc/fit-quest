@@ -21,7 +21,9 @@ body {
     background-color: var(--bg-dark);
     color: var(--text); 
     font-family: 'Inter', sans-serif; 
+    height: 100%;
     height: 100vh; width: 100vw;
+    height: 100dvh; /* pour les mobiles */
     overflow: hidden;
 }
 
