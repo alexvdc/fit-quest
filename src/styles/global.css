@@ -17,6 +17,10 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
+html {
+    background-color: var(--bg-dark);
+}
+
 body { 
     background-color: var(--bg-dark);
     color: var(--text); 
