@@ -26,6 +26,24 @@ const { title, showNavbar = true } = Astro.props;
 
         <ClientRouter />
         <script src="https://unpkg.com/lucide@latest"></script>
+
+        <!-- PWA Config -->
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#8b5cf6" />
+        <script>
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker
+                        .register("/sw.js")
+                        .then((registration) => {
+                            console.log("SW registered:", registration);
+                        })
+                        .catch((error) => {
+                            console.log("SW registration failed:", error);
+                        });
+                });
+            }
+        </script>
     </head>
     <body>
         <slot />
