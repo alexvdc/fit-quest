@@ -17,18 +17,25 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
+/* Appliquez la couleur sur HTML et empêchez le comportement de rebond natif */
 html {
     background-color: var(--bg-dark);
+    /* Empêche le "scroll bounce" blanc sur iOS/Android */
+    overscroll-behavior-y: none; 
+    height: 100%;
 }
 
 body { 
     background-color: var(--bg-dark);
     color: var(--text); 
     font-family: 'Inter', sans-serif; 
-    height: 100%;
-    height: 100vh; width: 100vw;
-    height: 100dvh; /* pour les mobiles */
-    overflow: hidden;
+    /* Assurez-vous que le body prend toute la place */
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100vw;
+    /* overscroll-behavior doit aussi être ici pour certains navigateurs */
+    overscroll-behavior-y: none;
+    position: relative; /* Aide au positionnement */
 }
 
 body:has(.stats-container), 
